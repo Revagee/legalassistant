@@ -27,7 +27,7 @@ export default function AIChat({ history = [], threads = [], activeId = null }) 
     }, [history])
 
     return (
-        <div className="px-6 sm:px-8 py-6 sm:py-8 min-h-[100dvh]">
+        <div className="px-6 sm:px-8 py-6 sm:py-8 h-[100dvh]">
             {/* Mobile drawer for threads */}
             <div className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform bg-white shadow-xl transition-transform duration-200 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} md:hidden`}>
                 <div className="border-b p-4 flex items-center justify-between">
@@ -60,8 +60,8 @@ export default function AIChat({ history = [], threads = [], activeId = null }) 
                 <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setDrawerOpen(false)} />
             )}
 
-            <div className="mx-auto grid h-full max-w-[100%] px-6 gap-6 md:grid-cols-[280px,1fr]">
-                <aside className="hidden md:block">
+            <div className="mx-auto flex h-full max-w-[100%] px-6">
+                <aside className="hidden md:block md:w-1/4 md:pr-6">
                     <div className="rounded-xl border border-gray-200 bg-white p-4">
                         <div className="mb-3 flex items-center justify-between">
                             <div className="text-sm font-semibold" style={{ color: '#111827' }}>Останні запити</div>
@@ -86,7 +86,7 @@ export default function AIChat({ history = [], threads = [], activeId = null }) 
                     </div>
                 </aside>
 
-                <section className="flex h-full flex-col">
+                <section className="flex h-full min-h-0 flex-1 flex-col">
                     <div className="mb-2 flex items-center justify-between">
                         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Юридичний ШІ</h1>
                         <button type="button" className="md:hidden inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm" onClick={() => setDrawerOpen(true)} aria-label="Відкрити меню тредів">
@@ -115,7 +115,7 @@ export default function AIChat({ history = [], threads = [], activeId = null }) 
                         )}
                     </div>
                     <form id="chatForm" method="post" className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
-                        <textarea id="chatInput" name="q" rows={2} placeholder="Опишіть питання… (Shift+Enter — новий рядок)" className="h-24 flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)] overflow-y-auto"></textarea>
+                        <textarea id="chatInput" name="q" rows={1} placeholder="Опишіть питання… (Shift+Enter — новий рядок)" className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)] overflow-y-auto"></textarea>
                         <button id="sendBtn" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#1E3A8A] px-5 py-3 text-sm font-medium text-white hover:opacity-95" type="submit">
                             <span>Надіслати</span>
                         </button>
