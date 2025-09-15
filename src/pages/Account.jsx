@@ -35,7 +35,7 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
 
     useEffect(() => {
         if (!loading && !isAuthenticated) {
-            navigate('/ui/auth/login?next=' + encodeURIComponent('/ui/account'))
+            navigate('/auth/login?next=' + encodeURIComponent('/account'))
         }
     }, [loading, isAuthenticated, navigate])
 
@@ -46,6 +46,9 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
             </div>
         )
     }
+
+    const createdAt = user?.created_at ? new Date(user.created_at) : null
+    const createdLabel = createdAt ? createdAt.toLocaleDateString() + ' ' + createdAt.toLocaleTimeString() : null
 
     return (
         <div className="mx-auto max-w-5xl px-4 py-8">
@@ -81,6 +84,7 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
                                 <div>
                                     <div className="text-lg font-semibold text-gray-900">{user?.name || 'Користувач'}</div>
                                     <div className="text-sm text-gray-600">{user?.email || ''}</div>
+                                    {createdLabel && <div className="mt-1 text-xs text-gray-500">Акаунт створено: {createdLabel}</div>}
                                     <button type="button" className="mt-3 inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">Редагувати профіль</button>
                                 </div>
                             </div>
@@ -98,6 +102,12 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
                                     <span className="font-semibold text-gray-900">Email</span>
                                     <span className="text-gray-900">{user?.email || ''}</span>
                                 </div>
+                                {createdLabel && (
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-semibold text-gray-900">Створено</span>
+                                        <span className="text-gray-900">{createdLabel}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

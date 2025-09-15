@@ -12,7 +12,7 @@ export default function TemplateForm({ templateKey = '' }) {
     }, [templateKey])
     const template = TEMPLATES[keyFromQuery]
     const fields = Array.isArray(template?.fields) ? template.fields : []
-    const backHref = '/ui'
+    const backHref = '/templates'
 
     const rowsLike = useMemo(() => new Set(['обставини', 'текст', 'додаткові', 'перелік']), [])
 
@@ -48,7 +48,7 @@ export default function TemplateForm({ templateKey = '' }) {
         document.body.appendChild(a)
         a.click()
         a.remove()
-        navigate('/ui/generated')
+        navigate('/generated')
     }
 
     return (

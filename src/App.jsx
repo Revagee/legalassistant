@@ -22,6 +22,9 @@ import Login from './pages/auth/Login.jsx'
 import Register from './pages/auth/Register.jsx'
 import Forgot from './pages/auth/Forgot.jsx'
 import Reset from './pages/auth/Reset.jsx'
+import CheckEmail from './pages/auth/CheckEmail.jsx'
+import VerifyEmail from './pages/auth/VerifyEmail.jsx'
+import VerifySuccess from './pages/auth/VerifySuccess.jsx'
 import TrainerIndex from './pages/trainer/Index.jsx'
 import TrainerQuiz from './pages/trainer/Quiz.jsx'
 import TrainerResult from './pages/trainer/Result.jsx'
@@ -34,29 +37,32 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/home" element={<Home />} />
-          <Route path="/ui" element={<TemplatesIndex />} />
-          <Route path="/ui/template" element={<TemplateForm />} />
-          <Route path="/ui/generated" element={<Generated />} />
-          <Route path="/ui/calculators" element={<CalculatorsIndex />} />
-          <Route path="/ui/calculators/fees" element={<Fees />} />
-          <Route path="/ui/calculators/interest" element={<Interest />} />
-          <Route path="/ui/calculators/penalty" element={<Penalty />} />
-          <Route path="/ui/calculators/esv" element={<Esv />} />
-          <Route path="/ui/calculators/alimony" element={<Alimony />} />
-          <Route path="/ui/ai" element={<AIChat />} />
-          <Route path="/ui/dictionary" element={<Dictionary />} />
-          <Route path="/ui/database" element={<Database />} />
-          <Route path="/ui/database/results" element={<DatabaseResults />} />
-          <Route path="/ui/database/read" element={<DatabaseRead />} />
-          <Route path="/ui/account" element={<Account />} />
-          <Route path="/ui/auth/login" element={<Login />} />
-          <Route path="/ui/auth/register" element={<Register />} />
-          <Route path="/ui/auth/forgot" element={<Forgot />} />
-          <Route path="/ui/auth/reset" element={<Reset />} />
-          <Route path="/ui/trainer" element={<TrainerIndex />} />
-          <Route path="/ui/trainer/quiz" element={<TrainerQuiz />} />
-          <Route path="/ui/trainer/result" element={<TrainerResult />} />
-          <Route path="/ui/trainer/simple-demo" element={<SimpleQuizDemo />} />
+          <Route path="/templates" element={<TemplatesIndex />} />
+          <Route path="/template" element={<TemplateForm />} />
+          <Route path="/generated" element={<Generated />} />
+          <Route path="/calculators" element={<CalculatorsIndex />} />
+          <Route path="/calculators/fees" element={<Fees />} />
+          <Route path="/calculators/interest" element={<Interest />} />
+          <Route path="/calculators/penalty" element={<Penalty />} />
+          <Route path="/calculators/esv" element={<Esv />} />
+          <Route path="/calculators/alimony" element={<Alimony />} />
+          <Route path="/ai" element={<AIChat />} />
+          <Route path="/dictionary" element={<Dictionary />} />
+          <Route path="/database" element={<Database />} />
+          <Route path="/database/results" element={<DatabaseResults />} />
+          <Route path="/database/read" element={<DatabaseRead />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/auth/login" element={<Login />} />
+          <Route path="/auth/register" element={<Register />} />
+          <Route path="/forgot" element={<Forgot />} />
+          <Route path="/auth/check-email" element={<CheckEmail />} />
+          <Route path="/reset-password" element={<Reset />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/auth/verify-success" element={<VerifySuccess />} />
+          <Route path="/trainer" element={<TrainerIndex />} />
+          <Route path="/trainer/quiz" element={<TrainerQuiz />} />
+          <Route path="/trainer/result" element={<TrainerResult />} />
+          <Route path="/trainer/simple-demo" element={<SimpleQuizDemo />} />
         </Routes>
       </Layout>
     </BrowserRouter>

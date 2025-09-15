@@ -24,13 +24,15 @@ export default function Register() {
         setError('')
         setLoading(true)
         try {
-            await register(name, email, password)
-            navigate(next || '/ui/account')
+            const res = await register(name, email, password)
+            // После регистрации ведём на CheckEmail, email передаём через state
+            navigate('/auth/check-email', { state: { email } })
         } catch (e) {
             setError(e?.message || 'Помилка реєстрації')
         } finally {
             setLoading(false)
         }
+        try { sessionStorage.setItem('last_forgot_email', form.email.value) } catch (_) { }
     }
 
     return (
@@ -52,7 +54,7 @@ export default function Register() {
                 </label>
                 <button type="submit" disabled={loading} className="rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-70">{loading ? 'Створення…' : 'Створити акаунт'}</button>
             </form>
-            <p className="mt-4 text-sm">Вже маєте акаунт? <a className="text-[#1E3A8A] hover:underline" href={`/ui/auth/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Увійти</a></p>
+            <p className="mt-4 text-sm">Вже маєте акаунт? <a className="text-[#1E3A8A] hover:underline" href={`/auth/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Увійти</a></p>
         </div>
     )
 }

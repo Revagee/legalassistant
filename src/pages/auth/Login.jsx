@@ -19,9 +19,10 @@ export default function Login() {
         setLoading(true)
         try {
             await login(email, password)
-            navigate(next || '/ui/account')
+            navigate(next || '/account')
         } catch (e) {
-            setError(e?.message || 'Помилка входу')
+            const msg = e?.message || 'Помилка входу'
+            setError(msg)
         } finally {
             setLoading(false)
         }
@@ -40,8 +41,8 @@ export default function Login() {
                 </label>
                 <button type="submit" disabled={loading} className="rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95 disabled:opacity-70">{loading ? 'Вхід…' : 'Увійти'}</button>
             </form>
-            <p className="mt-4 text-sm"><a className="text-[#1E3A8A] hover:underline" href="/ui/auth/forgot">Забули пароль?</a></p>
-            <p className="mt-1 text-sm">Ще немає акаунта? <a className="text-[#1E3A8A] hover:underline" href={`/ui/auth/register${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Зареєструватися</a></p>
+            <p className="mt-4 text-sm"><a className="text-[#1E3A8A] hover:underline" href="/forgot">Забули пароль?</a></p>
+            <p className="mt-1 text-sm">Ще немає акаунта? <a className="text-[#1E3A8A] hover:underline" href={`/auth/register${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Зареєструватися</a></p>
         </div>
     )
 }

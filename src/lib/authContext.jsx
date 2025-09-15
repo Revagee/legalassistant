@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { AuthAPI, getStoredToken, setStoredToken } from './api.js'
+import { AuthAPI, getStoredToken, setStoredToken, setStoredRefreshToken } from './api.js'
 
 const AuthContext = createContext({
     isAuthenticated: false,
@@ -25,10 +25,13 @@ export function AuthProvider({ children }) {
         try {
             setLoading(true)
             const data = await AuthAPI.me()
-            setUser(data?.user || data || null)
-            return data
+            // Backend may return { id, email, name, created_at } or { user: { ... } }
+            const me = data?.user || data || null
+            setUser(me)
+            return me
         } catch (_) {
             setStoredToken('')
+            setStoredRefreshToken('')
             setUser(null)
             return null
         } finally {
@@ -40,22 +43,61 @@ export function AuthProvider({ children }) {
         loadMe()
     }, [loadMe])
 
+    // Auto refresh every 24 hours while page is open
+    useEffect(() => {
+        const DAY_MS = 24 * 60 * 60 * 1000
+        let intervalId = null
+        async function tick() {
+            try {
+                const res = await AuthAPI.refresh()
+                // if backend returns new tokens, persist them
+                if (res?.access_token) setStoredToken(res.access_token)
+                if (res?.refresh_token) setStoredRefreshToken(res.refresh_token)
+                // refresh profile optionally
+                await loadMe()
+            } catch (_) {
+                // on refresh failure, clear session silently
+                setStoredToken('')
+                setStoredRefreshToken('')
+                setUser(null)
+            }
+        }
+        // start timer only if there is a token
+        if (getStoredToken()) {
+            intervalId = setInterval(tick, DAY_MS)
+        }
+        return () => { if (intervalId) clearInterval(intervalId) }
+    }, [loadMe])
+
     const login = useCallback(async (email, password) => {
-        const data = await AuthAPI.login(email, password)
-        setUser(data?.user || null)
-        return data
-    }, [])
+        // /auth/login returns tokens; token is stored by AuthAPI.login
+        await AuthAPI.login(email, password)
+        // Immediately fetch current user
+        const me = await loadMe()
+        return { user: me }
+    }, [loadMe])
 
     const register = useCallback(async (name, email, password) => {
+        // Registration should not auto-login; some backends require email verification first
         const data = await AuthAPI.register(name, email, password)
-        setUser(data?.user || null)
+        // If backend auto-issued token, refresh the user; otherwise keep unauthenticated
+        try {
+            if (getStoredToken()) await loadMe()
+        } catch (_) { }
         return data
-    }, [])
+    }, [loadMe])
 
     const logout = useCallback(async () => {
         await AuthAPI.logout()
         setUser(null)
     }, [])
+
+    const manualRefresh = useCallback(async () => {
+        const res = await AuthAPI.refresh()
+        if (res?.access_token) setStoredToken(res.access_token)
+        if (res?.refresh_token) setStoredRefreshToken(res.refresh_token)
+        return loadMe()
+    }, [loadMe])
 
     const value = useMemo(() => ({
         isAuthenticated: !!user,
@@ -64,8 +106,8 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
-        refresh: loadMe,
-    }), [user, loading, login, register, logout, loadMe])
+        refresh: manualRefresh,
+    }), [user, loading, login, register, logout, manualRefresh])
 
     return (
         <AuthContext.Provider value={value}>

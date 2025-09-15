@@ -46,13 +46,13 @@ export function FeatureCard({ href, img, title, text }) {
 
 export function FeaturesCarousel() {
     const items = useMemo(() => ([
-        { href: '/ui/ai', title: 'Юридичний ШІ', text: 'Відповіді з посиланнями на закон. Пошук по базі та РАГ.', img: assetPath('lawai.jpeg') },
-        { href: '/ui', title: 'Генератор документів', text: 'Позови, заяви, договори на основі форм.', img: assetPath('document generation.jpeg') },
-        { href: '/ui/calculators', title: 'Калькулятори', text: 'Судовий збір, 3% річних, пеня, ЄСВ.', img: assetPath('calculator.jpeg') },
-        { href: '/ui/database', title: 'Законодавча база', text: 'Пошук по статтях і ключових словах.', img: assetPath('legaldatabase.jpeg') },
-        { href: '/ui/dictionary', title: 'Юридичний словник', text: 'Визначення термінів простими словами.', img: assetPath('dictionary.jpeg') },
-        { href: '/ui/trainer', title: 'Тренажер', text: 'Квіз на 10 питань для самотесту.', img: assetPath('trainer.jpeg') },
-        { href: '/ui/generated', title: 'Згенеровані документи', text: 'Останні файли, створені у веб‑боті.', img: assetPath('generated documents.jpeg') },
+        { href: '/ai', title: 'Юридичний ШІ', text: 'Відповіді з посиланнями на закон. Пошук по базі та РАГ.', img: assetPath('lawai.jpeg') },
+        { href: '/templates', title: 'Генератор документів', text: 'Позови, заяви, договори на основі форм.', img: assetPath('document generation.jpeg') },
+        { href: '/calculators', title: 'Калькулятори', text: 'Судовий збір, 3% річних, пеня, ЄСВ.', img: assetPath('calculator.jpeg') },
+        { href: '/database', title: 'Законодавча база', text: 'Пошук по статтях і ключових словах.', img: assetPath('legaldatabase.jpeg') },
+        { href: '/dictionary', title: 'Юридичний словник', text: 'Визначення термінів простими словами.', img: assetPath('dictionary.jpeg') },
+        { href: '/trainer', title: 'Тренажер', text: 'Квіз на 10 питань для самотесту.', img: assetPath('trainer.jpeg') },
+        { href: '/generated', title: 'Згенеровані документи', text: 'Останні файли, створені у веб‑боті.', img: assetPath('generated documents.jpeg') },
     ]), [])
 
     const listRef = useRef(null)
@@ -92,13 +92,13 @@ export function Header() {
     const [menuOpen, setMenuOpen] = useState(false)
 
     const navItems = [
-        { href: '/ui/ai', label: 'ШІ' },
-        { href: '/ui', label: 'Генератор' },
-        { href: '/ui/calculators', label: 'Калькулятори' },
-        { href: '/ui/database', label: 'База' },
-        { href: '/ui/dictionary', label: 'Словник' },
-        { href: '/ui/trainer', label: 'Тренажер' },
-        { href: '/ui/generated', label: 'Файли' },
+        { href: '/ai', label: 'ШІ' },
+        { href: '/templates', label: 'Генератор' },
+        { href: '/calculators', label: 'Калькулятори' },
+        { href: '/database', label: 'База' },
+        { href: '/dictionary', label: 'Словник' },
+        { href: '/trainer', label: 'Тренажер' },
+        { href: '/generated', label: 'Файли' },
     ]
 
     const closeMenu = () => setMenuOpen(false)
@@ -124,9 +124,9 @@ export function Header() {
                     </button>
                     <div className="hidden md:block">
                         {isAuthenticated ? (
-                            <a href="/ui/account" className="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors" aria-label="Акаунт">Акаунт</a>
+                            <a href="/account" className="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors" aria-label="Акаунт">Акаунт</a>
                         ) : (
-                            <a href="/ui/auth/login" className="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors" aria-label="Війти">Війти</a>
+                            <a href="/auth/login" className="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors" aria-label="Увійти">Увійти</a>
                         )}
                     </div>
                     <button type="button" className="md:hidden inline-flex items-center justify-center rounded-md border border-gray-300 p-2 text-gray-700 hover:bg-gray-50" aria-label="Меню" aria-expanded={menuOpen ? 'true' : 'false'} onClick={() => setMenuOpen((v) => !v)}>
@@ -152,9 +152,9 @@ export function Header() {
                     ))}
                     <div className="pt-1">
                         {isAuthenticated ? (
-                            <a href="/ui/account" onClick={closeMenu} className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">Акаунт</a>
+                            <a href="/account" onClick={closeMenu} className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">Акаунт</a>
                         ) : (
-                            <a href="/ui/auth/login" onClick={closeMenu} className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">Війти</a>
+                            <a href="/auth/login" onClick={closeMenu} className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">Увійти</a>
                         )}
                     </div>
                 </div>

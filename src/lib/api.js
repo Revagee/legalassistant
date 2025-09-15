@@ -26,6 +26,21 @@ export function setStoredToken(token) {
     } catch (_) { /* ignore */ }
 }
 
+export function getStoredRefreshToken() {
+    try {
+        return localStorage.getItem('refresh_token') || ''
+    } catch (_) {
+        return ''
+    }
+}
+
+export function setStoredRefreshToken(token) {
+    try {
+        if (!token) localStorage.removeItem('refresh_token')
+        else localStorage.setItem('refresh_token', token)
+    } catch (_) { /* ignore */ }
+}
+
 export async function apiRequest(path, options = {}) {
     const baseUrl = getBaseUrl();
     const url = path.startsWith('http') ? path : `${baseUrl}${path}`;
@@ -69,31 +84,61 @@ export async function apiRequest(path, options = {}) {
     return data;
 }
 
+// Normalize auth responses coming from backend
+function extractAccessToken(data) {
+    if (!data) return '';
+    if (data.access_token) return String(data.access_token);
+    if (data.token) return String(data.token);
+    if (data.data?.access_token) return String(data.data.access_token);
+    return '';
+}
+
+function extractRefreshToken(data) {
+    if (!data) return ''
+    if (data.refresh_token) return String(data.refresh_token)
+    if (data.data?.refresh_token) return String(data.data.refresh_token)
+    return ''
+}
+
 // Auth endpoints
 export const AuthAPI = {
     async login(email, password) {
         const data = await apiRequest('/auth/login', { method: 'POST', body: { email, password } });
-        // Expected: { token, user }
-        if (data && data.token) setStoredToken(data.token);
+        const accessToken = extractAccessToken(data);
+        const refreshToken = extractRefreshToken(data);
+        if (accessToken) setStoredToken(accessToken);
+        if (refreshToken) setStoredRefreshToken(refreshToken)
         return data;
     },
     async register(name, email, password) {
         const data = await apiRequest('/auth/register', { method: 'POST', body: { name, email, password } });
-        if (data && data.token) setStoredToken(data.token);
+        const accessToken = extractAccessToken(data);
+        const refreshToken = extractRefreshToken(data);
+        if (accessToken) setStoredToken(accessToken);
+        if (refreshToken) setStoredRefreshToken(refreshToken)
         return data;
     },
     async forgot(email) {
-        return apiRequest('/auth/forgot', { method: 'POST', body: { email } });
+        return apiRequest('/auth/forgot-password', { method: 'POST', body: { email } });
     },
     async reset(token, password) {
-        return apiRequest('/auth/reset', { method: 'POST', body: { token, password } });
+        return apiRequest('/auth/reset-password', { method: 'POST', body: { token, new_password: password } });
     },
     async me() {
         return apiRequest('/auth/me', { method: 'GET' });
     },
+    async verifyEmail(token) {
+        const query = token ? `?token=${encodeURIComponent(token)}` : ''
+        return apiRequest(`/auth/verify-email${query}`, { method: 'GET' })
+    },
+    async refresh() {
+        const refreshToken = getStoredRefreshToken()
+        return apiRequest('/auth/refresh', { method: 'POST', body: { refresh_token: refreshToken } })
+    },
     async logout() {
         try { await apiRequest('/auth/logout', { method: 'POST' }); } catch (_) { /* ignore */ }
         setStoredToken('');
+        setStoredRefreshToken('');
     }
 };
 

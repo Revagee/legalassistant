@@ -124,7 +124,7 @@ export default function Database() {
                 }
             }
             setArticleContent(found ? found.body : '')
-            setPrimaryUrl(found ? `/ui/database/read?code=${encodeURIComponent(codeId)}&article=${encodeURIComponent(found.num)}` : '')
+            setPrimaryUrl(found ? `/database/read?code=${encodeURIComponent(codeId)}&article=${encodeURIComponent(found.num)}` : '')
         } catch (err) {
             setError(err.message || 'Помилка завантаження')
         } finally {
@@ -153,7 +153,7 @@ export default function Database() {
                     const start = Math.max(0, idx - 120)
                     const end = Math.min(a.body.length, idx + 280)
                     const snippet = a.body.slice(start, end).trim()
-                    results.push({ num: a.num, snippet, link: `/ui/database/read?code=${encodeURIComponent(codeId)}&article=${encodeURIComponent(a.num)}` })
+                    results.push({ num: a.num, snippet, link: `/database/read?code=${encodeURIComponent(codeId)}&article=${encodeURIComponent(a.num)}` })
                 }
             }
             setKeywordResults(results)

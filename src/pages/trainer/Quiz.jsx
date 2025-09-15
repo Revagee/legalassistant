@@ -49,7 +49,7 @@ export default function TrainerQuiz({ subject = 'Тест', questions = [], ids 
         try { localStorage.removeItem(storageKey) } catch {
             /* ignore */;
         }
-        navigate('/ui/trainer/result', { state: payload })
+        navigate('/trainer/result', { state: payload })
     }, [answers, effectiveQuestions, effectiveSubject, navigate, resultKey, storageKey])
 
     useEffect(() => {

@@ -12,7 +12,7 @@ export default function TemplatesIndex({ categories = TEMPLATE_CATEGORIES }) {
                         <ul className="mt-2 list-disc pl-6">
                             {items.map((item) => (
                                 <li key={item} className="text-sm leading-7">
-                                    <a className="text-[#1E3A8A] hover:underline" href={`/ui/template?key=${encodeURIComponent(item)}`}>{item}</a>
+                                    <a className="text-[#1E3A8A] hover:underline" href={`/template?key=${encodeURIComponent(item)}`}>{item}</a>
                                 </li>
                             ))}
                         </ul>

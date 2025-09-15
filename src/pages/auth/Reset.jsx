@@ -24,7 +24,7 @@ export default function Reset() {
         try {
             await AuthAPI.reset(token, password)
             setDone(true)
-            setTimeout(() => navigate('/ui/auth/login'), 1200)
+            setTimeout(() => navigate('/auth/login'), 1200)
         } catch (e) {
             setError(e?.message || 'Не вдалося оновити пароль')
         } finally {

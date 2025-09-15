@@ -132,7 +132,7 @@ export default function Landing({ heroVariant = getHeroVariantFromQuery() }) {
         }
     }, [])
 
-    const onStartChat = () => { window.location.href = '/ui/ai' }
+    const onStartChat = () => { window.location.href = '/ai' }
 
     return (
         <div className={classNames('min-h-screen', 'transition-opacity duration-700 ease-out', mounted ? 'opacity-100' : 'opacity-0')} style={{ fontFamily: 'Inter, Roboto, ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial', backgroundColor: 'var(--pageBg)', color: 'var(--text)' }}>

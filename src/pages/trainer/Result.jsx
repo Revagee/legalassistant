@@ -41,7 +41,7 @@ export default function TrainerResult({ subject = '', correct = 0, percentage = 
                     </ol>
                 </div>
             </div>
-            <p className="mt-4"><a className="inline-flex rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95" href="/ui/trainer">Нове тренування</a></p>
+            <p className="mt-4"><a className="inline-flex rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95" href="/trainer">Нове тренування</a></p>
         </div>
     )
 }

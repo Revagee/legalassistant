@@ -47,9 +47,9 @@ export default function Dictionary({ q = '' }) {
 
     const aiHref = useMemo(() => {
         const value = (query || '').trim()
-        if (!value) return '/ui/ai'
+        if (!value) return '/ai'
         const aq = `${value} це?`
-        return `/ui/ai?q=${encodeURIComponent(aq)}`
+        return `/ai?q=${encodeURIComponent(aq)}`
     }, [query])
 
     const termList = useMemo(() => Object.keys(ALL_TERMS).sort(), [])
@@ -61,7 +61,7 @@ export default function Dictionary({ q = '' }) {
             <form onSubmit={handleSubmit} className="mt-6 flex flex-col sm:flex-row gap-3">
                 <input type="text" name="q" placeholder="Пошук терміну" value={query} onChange={(e) => setQuery(e.target.value)} className="flex-1 rounded-md border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" />
                 <button className="rounded-md bg-[#1E3A8A] px-5 py-3 text-sm font-medium text-white hover:opacity-95" type="submit">Пошук</button>
-                <a className="rounded-md bg-gray-700 px-5 py-3 text-sm font-medium text-white hover:opacity-95" href="/ui/dictionary">Очистити</a>
+                <a className="rounded-md bg-gray-700 px-5 py-3 text-sm font-medium text-white hover:opacity-95" href="/dictionary">Очистити</a>
             </form>
 
             {filtered !== null ? (
