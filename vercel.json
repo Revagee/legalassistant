@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/(.*)",
+            "destination": "https://legal-ai-api-35dc5cd4fd8d.herokuapp.com/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/"
         }

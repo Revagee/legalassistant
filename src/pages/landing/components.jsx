@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { assetPath } from './utils.js'
 import { Logo, ClockIcon, ShieldIcon, BadgeIcon } from './icons.jsx'
+import { useAuth } from '../../lib/authContext.jsx'
 
 export function PrimaryButton({ children, onClick }) {
     return (
@@ -87,25 +88,8 @@ export function FeaturesCarousel() {
 }
 
 export function Header() {
-    const [isAuth, setIsAuth] = useState(false)
+    const { isAuthenticated } = useAuth()
     const [menuOpen, setMenuOpen] = useState(false)
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            let authState = false
-            try {
-                const rootEl = document.getElementById('landing-root')
-                const dataAuth = rootEl?.getAttribute('data-auth')
-                if (rootEl && dataAuth === '1') authState = true
-            } catch {
-                // noop
-            }
-            if (!authState && typeof window !== 'undefined') {
-                authState = (window.__IS_AUTH__ === true) || (window.__IS_AUTH__ === 'true')
-            }
-            setIsAuth(authState)
-        }, 100)
-        return () => clearTimeout(timer)
-    }, [])
 
     const navItems = [
         { href: '/ui/ai', label: 'ШІ' },
@@ -139,7 +123,7 @@ export function Header() {
                         <span id="themeLabel" className="font-semibold">Dark</span>
                     </button>
                     <div className="hidden md:block">
-                        {isAuth ? (
+                        {isAuthenticated ? (
                             <a href="/ui/account" className="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors" aria-label="Акаунт">Акаунт</a>
                         ) : (
                             <a href="/ui/auth/login" className="inline-flex items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors" aria-label="Війти">Війти</a>
@@ -167,7 +151,7 @@ export function Header() {
                         <a key={item.href} href={item.href} onClick={closeMenu} className="rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">{item.label}</a>
                     ))}
                     <div className="pt-1">
-                        {isAuth ? (
+                        {isAuthenticated ? (
                             <a href="/ui/account" onClick={closeMenu} className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">Акаунт</a>
                         ) : (
                             <a href="/ui/auth/login" onClick={closeMenu} className="inline-flex w-full items-center justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">Війти</a>

@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../lib/authContext.jsx'
+import { useNavigate } from 'react-router-dom'
 
-export default function Account({ userName = 'Користувач', userEmail = '', avatarUrl = '/static/img/Ellipse 3.png' }) {
+export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
+    const { user, loading, isAuthenticated, logout } = useAuth()
+    const navigate = useNavigate()
     const [active, setActive] = useState('home')
     const [avatar, setAvatar] = useState(avatarUrl)
     useEffect(() => {
@@ -29,6 +33,20 @@ export default function Account({ userName = 'Користувач', userEmail =
         reader.readAsDataURL(file)
     }
 
+    useEffect(() => {
+        if (!loading && !isAuthenticated) {
+            navigate('/ui/auth/login?next=' + encodeURIComponent('/ui/account'))
+        }
+    }, [loading, isAuthenticated, navigate])
+
+    if (!isAuthenticated) {
+        return (
+            <div className="mx-auto max-w-5xl px-4 py-8">
+                <div className="text-sm text-gray-600">Завантаження…</div>
+            </div>
+        )
+    }
+
     return (
         <div className="mx-auto max-w-5xl px-4 py-8">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Акаунт</h1>
@@ -45,6 +63,9 @@ export default function Account({ userName = 'Користувач', userEmail =
                         <button type="button" onClick={() => switchTab('settings')} className={`account-tab inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${active === 'settings' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-50'}`}>
                             <span>Налаштування</span>
                         </button>
+                        <button type="button" onClick={async () => { await logout(); navigate('/'); }} className={`account-tab inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50`}>
+                            <span>Вийти</span>
+                        </button>
                     </nav>
                 </aside>
 
@@ -58,8 +79,8 @@ export default function Account({ userName = 'Користувач', userEmail =
                                     <input id="avatarInput" type="file" accept="image/*" className="hidden" onChange={onAvatarChange} />
                                 </div>
                                 <div>
-                                    <div className="text-lg font-semibold text-gray-900">{userName || 'Користувач'}</div>
-                                    <div className="text-sm text-gray-600">{userEmail}</div>
+                                    <div className="text-lg font-semibold text-gray-900">{user?.name || 'Користувач'}</div>
+                                    <div className="text-sm text-gray-600">{user?.email || ''}</div>
                                     <button type="button" className="mt-3 inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">Редагувати профіль</button>
                                 </div>
                             </div>
@@ -71,11 +92,11 @@ export default function Account({ userName = 'Користувач', userEmail =
                             <div className="grid gap-3 text-sm">
                                 <div className="flex items-center justify-between">
                                     <span className="font-semibold text-gray-900">Ім'я</span>
-                                    <span className="text-gray-900">{userName || '—'}</span>
+                                    <span className="text-gray-900">{user?.name || '—'}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="font-semibold text-gray-900">Email</span>
-                                    <span className="text-gray-900">{userEmail}</span>
+                                    <span className="text-gray-900">{user?.email || ''}</span>
                                 </div>
                             </div>
                         </div>
