@@ -5,8 +5,15 @@ const DEFAULT_BASE_URL = 'https://legal-ai-api-35dc5cd4fd8d.herokuapp.com';
 function getBaseUrl() {
     try {
         const envUrl = import.meta?.env?.VITE_API_URL;
-        return (envUrl && String(envUrl).trim()) || DEFAULT_BASE_URL;
-    } catch (_) {
+        if (envUrl && String(envUrl).trim()) return String(envUrl).trim();
+        // In production, prefer same-origin proxy to avoid CORS
+        if (typeof window !== 'undefined') {
+            const host = window.location?.hostname || '';
+            const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+            return isLocalhost ? DEFAULT_BASE_URL : '/api';
+        }
+        return DEFAULT_BASE_URL;
+    } catch {
         return DEFAULT_BASE_URL;
     }
 }
@@ -14,7 +21,7 @@ function getBaseUrl() {
 export function getStoredToken() {
     try {
         return localStorage.getItem('auth_token') || '';
-    } catch (_) {
+    } catch {
         return '';
     }
 }
@@ -23,13 +30,13 @@ export function setStoredToken(token) {
     try {
         if (!token) localStorage.removeItem('auth_token');
         else localStorage.setItem('auth_token', token);
-    } catch (_) { /* ignore */ }
+    } catch { /* ignore */ }
 }
 
 export function getStoredRefreshToken() {
     try {
         return localStorage.getItem('refresh_token') || ''
-    } catch (_) {
+    } catch {
         return ''
     }
 }
@@ -38,7 +45,7 @@ export function setStoredRefreshToken(token) {
     try {
         if (!token) localStorage.removeItem('refresh_token')
         else localStorage.setItem('refresh_token', token)
-    } catch (_) { /* ignore */ }
+    } catch { /* ignore */ }
 }
 
 export async function apiRequest(path, options = {}) {
@@ -69,7 +76,7 @@ export async function apiRequest(path, options = {}) {
     try {
         if (contentType.includes('application/json')) data = await res.json();
         else data = await res.text();
-    } catch (_) {
+    } catch {
         // ignore parse errors
     }
 
@@ -136,7 +143,7 @@ export const AuthAPI = {
         return apiRequest('/auth/refresh', { method: 'POST', body: { refresh_token: refreshToken } })
     },
     async logout() {
-        try { await apiRequest('/auth/logout', { method: 'POST' }); } catch (_) { /* ignore */ }
+        try { await apiRequest('/auth/logout', { method: 'POST' }); } catch { /* ignore */ }
         setStoredToken('');
         setStoredRefreshToken('');
     }
