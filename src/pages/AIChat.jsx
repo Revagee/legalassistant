@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { useAuth } from '../lib/authContext.jsx'
 
 export default function AIChat({ history = [], threads = [], activeId = null }) {
     const bodyRef = useRef(null)
     const [drawerOpen, setDrawerOpen] = useState(false)
+    const { isAuthenticated, loading } = useAuth()
 
     useEffect(() => {
         if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
@@ -31,7 +33,7 @@ export default function AIChat({ history = [], threads = [], activeId = null }) 
             {/* Mobile drawer for threads */}
             <div className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform bg-white shadow-xl transition-transform duration-200 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} md:hidden`}>
                 <div className="border-b p-4 flex items-center justify-between">
-                    <div className="text-sm font-semibold" style={{ color: '#111827' }}>Останні запити</div>
+                    <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Останні запити</div>
                     <button onClick={() => setDrawerOpen(false)} className="text-xs font-medium hover:underline" style={{ color: 'var(--accent)' }}>Закрити</button>
                 </div>
                 <div className="p-3">
@@ -60,11 +62,11 @@ export default function AIChat({ history = [], threads = [], activeId = null }) 
                 <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setDrawerOpen(false)} />
             )}
 
-            <div className="mx-auto flex h-full max-w-[100%] px-6">
+            <div className="mx-auto flex h-full max-w-[100%] px-6 relative">
                 <aside className="hidden md:block md:w-1/4 md:pr-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4">
+                    <div className="rounded-xl border border-gray-200 bg-white p-4 mt-6">
                         <div className="mb-3 flex items-center justify-between">
-                            <div className="text-sm font-semibold" style={{ color: '#111827' }}>Останні запити</div>
+                            <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Останні запити</div>
                             <form method="post">
                                 <input type="hidden" name="action" value="clear" />
                                 <button type="submit" className="text-xs font-medium hover:underline" style={{ color: 'var(--accent)' }}>Новий чат</button>
@@ -88,7 +90,7 @@ export default function AIChat({ history = [], threads = [], activeId = null }) 
 
                 <section className="flex h-full min-h-0 flex-1 flex-col">
                     <div className="mb-2 flex items-center justify-between">
-                        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Юридичний ШІ</h1>
+                        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight pt-2" style={{ color: 'var(--accent)' }}>Юридичний ШІ</h1>
                         <button type="button" className="md:hidden inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm" onClick={() => setDrawerOpen(true)} aria-label="Відкрити меню тредів">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5" style={{ color: 'var(--accent)' }}>
                                 <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -121,6 +123,19 @@ export default function AIChat({ history = [], threads = [], activeId = null }) 
                         </button>
                     </form>
                 </section>
+                {(!loading && !isAuthenticated) && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm" style={{ background: 'rgba(131, 131, 131, 0.1)', WebkitBackdropFilter: 'blur(6px)', backdropFilter: 'blur(6px)', boxShadow: '0px 0px 20px 20px rgba(131, 131, 131, 0.1)', width: '101%', height: '104%' }}>
+                        <div className="max-w-md w-[92%] sm:w-auto rounded-2xl border p-6 text-center shadow-sm"
+                            style={{ background: 'var(--surface-solid)', color: 'var(--ink)', borderColor: 'var(--border)' }}>
+                            <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--accent)' }}>Доступ до чату</h2>
+                            <p className="text-sm mb-4" style={{ color: '#6B7280' }}>Використання чату доступне лише зареєстрованим користувачам.</p>
+                            <div className="flex items-center justify-center gap-2">
+                                <a href="/auth/login" className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium border" style={{ background: 'var(--accent)', color: 'white', borderColor: 'var(--accent)' }}>Увійти</a>
+                                <a href="/auth/register" className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium border" style={{ background: 'var(--accent)', color: 'white', borderColor: 'var(--accent)' }}>Зареєструватися</a>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )
