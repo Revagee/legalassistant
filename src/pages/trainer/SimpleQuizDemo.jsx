@@ -19,7 +19,7 @@ export default function SimpleQuizDemo() {
 
     return (
         <div className="mx-auto max-w-6xl px-6 py-8">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E3A8A] mb-6">Simple Quiz Demo</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--accent)] mb-6">Simple Quiz Demo</h1>
             {!finished ? (
                 <div className="rounded-xl border border-gray-200 bg-white p-6">
                     <h2 className="text-lg font-semibold mb-4">{initial[current].q}</h2>
@@ -35,8 +35,8 @@ export default function SimpleQuizDemo() {
             ) : (
                 <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
                     <h2 className="text-xl font-semibold mb-2">Your Score</h2>
-                    <div className="text-4xl font-bold mb-4 text-[#1E3A8A]">{score} / {initial.length}</div>
-                    <button className="rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white" onClick={() => { setCurrent(0); setScore(0); setFinished(false) }}>Retry Quiz</button>
+                    <div className="text-4xl font-bold mb-4 text-[var(--accent)]">{score} / {initial.length}</div>
+                    <button className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white" onClick={() => { setCurrent(0); setScore(0); setFinished(false) }}>Retry Quiz</button>
                 </div>
             )}
         </div>

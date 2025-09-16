@@ -53,8 +53,8 @@ export default function TemplateForm({ templateKey = '' }) {
 
     return (
         <div className="mx-auto max-w-5xl px-6 py-8">
-            <p><a className="text-[#1E3A8A] hover:underline" href={backHref}>← До категорій</a></p>
-            <h1 className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>{keyFromQuery || 'Шаблон'}</h1>
+            <p><a className="text-[var(--accent)] hover:underline" href={backHref}>← До категорій</a></p>
+            <h1 className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>{keyFromQuery || 'Шаблон'}</h1>
             {template ? (
                 <form onSubmit={onGenerate} className="mt-6 grid gap-4 max-w-3xl">
                     {fields.map((field) => (
@@ -67,7 +67,7 @@ export default function TemplateForm({ templateKey = '' }) {
                             )}
                         </div>
                     ))}
-                    <button className="mt-2 inline-flex rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95" type="submit">Згенерувати документ</button>
+                    <button className="mt-2 inline-flex rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95" type="submit">Згенерувати документ</button>
                 </form>
             ) : (
                 <p className="mt-6 text-sm" style={{ color: '#4B5563' }}>Шаблон не знайдено.</p>

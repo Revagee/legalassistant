@@ -9,8 +9,11 @@
             const style = document.createElement('style')
             style.id = STYLE_ID
             style.textContent = `
-          :root{--pageBg:#ffffff;--text:#0f172a;--muted:#4B5563;--accent:#1E3A8A;--accentBg:#1E3A8A;--btnText:#ffffff;--cardBg:#ffffff;--cardBorder:#e5e7eb}
-          [data-theme="dark"]{--pageBg:#0b0f14;--text:#e6edf7;--muted:#a5b0c2;--accent:#e6edf7;--accentBg:#e6edf7;--btnText:#0b0f14;--cardBg:#0f1622;--cardBorder:#1f2937}
+          :root{--pageBg:#ffffff;--text:#0f172a;--muted:#4B5563;--accent:#1E3A8A;--accentBg:#1E3A8A;--btnText:#ffffff;--cardBg:#ffffff;--cardBorder:#e5e7eb;
+            /* Radix Themes accent override to keep borders consistent */
+            --accent-9:#1E3A8A; --accent-10:#1A357C; --accent-8:#2F4FA5}
+          [data-theme="dark"]{--pageBg:#0b0f14;--text:#e6edf7;--muted:#a5b0c2;--accent:#93c5fd;--accentBg:#60a5fa;--btnText:#0b0f14;--cardBg:#0f1622;--cardBorder:#1f2937;
+            --accent-9:#93c5fd; --accent-10:#bfdbfe; --accent-8:#60a5fa}
           .theme-card{background:var(--cardBg) !important; border-color:var(--cardBorder) !important}
         `
             document.head.appendChild(style)
@@ -60,7 +63,8 @@
     function setThemeIcon(iconEl, theme) {
         try {
             if (!iconEl) return
-            iconEl.textContent = theme === 'dark' ? '☀️' : '🌙'
+            // Для иконок lucide-react меняем только дата-атрибут; сам компонент можно отрендерить статично
+            iconEl.setAttribute('data-theme-icon', theme)
         } catch {
             // noop
         }

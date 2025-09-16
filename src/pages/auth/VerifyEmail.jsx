@@ -32,7 +32,7 @@ export default function VerifyEmail() {
 
     return (
         <div className="mx-auto max-w-md px-6 py-8">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Підтвердження email</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Підтвердження email</h1>
             {error ? (
                 <div className="mt-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</div>
             ) : (
@@ -40,7 +40,7 @@ export default function VerifyEmail() {
             )}
             {!loading && error && (
                 <div className="mt-6 grid gap-3">
-                    <a href="/auth/login" className="rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95">Перейти до входу</a>
+                    <a href="/auth/login" className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95">Перейти до входу</a>
                 </div>
             )}
         </div>

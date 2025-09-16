@@ -25,9 +25,9 @@ export default function TrainerResult({ subject = '', correct = 0, percentage = 
     }
     return (
         <div className="mx-auto max-w-5xl px-6 py-8">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Результат тренування — {s}</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Результат тренування — {s}</h1>
             <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5">
-                <div className="text-sm" style={{ color: '#111827' }}>Правильних відповідей: {c} з 10 ({p}%)</div>
+                <div className="text-sm" style={{ color: 'var(--ink)' }}>Правильних відповідей: {c} з 10 ({p}%)</div>
                 <div className="mt-3">
                     <ol className="list-decimal pl-6">
                         {a.map((x, idx) => (
@@ -41,7 +41,7 @@ export default function TrainerResult({ subject = '', correct = 0, percentage = 
                     </ol>
                 </div>
             </div>
-            <p className="mt-4"><a className="inline-flex rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95" href="/trainer">Нове тренування</a></p>
+            <p className="mt-4"><a className="inline-flex rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95" href="/trainer">Нове тренування</a></p>
         </div>
     )
 }

@@ -48,7 +48,7 @@ export default function Alimony() {
 
     return (
         <div className="mx-auto max-w-5xl px-6 py-8">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Аліменти (спрощено)</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Аліменти (спрощено)</h1>
             <form onSubmit={onSubmit} className="mt-6 grid gap-4 max-w-xl">
                 <label>Режим
                     <select className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" value={mode} onChange={e => setMode(e.target.value)}>
@@ -82,7 +82,7 @@ export default function Alimony() {
                         <input className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" type="number" step="0.01" value={pmChild} onChange={e => setPmChild(e.target.value)} />
                     </label>
                 )}
-                <button className="inline-flex items-center rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95" type="submit">Розрахувати</button>
+                <button className="inline-flex items-center rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95" type="submit">Розрахувати</button>
             </form>
 
             {result && (

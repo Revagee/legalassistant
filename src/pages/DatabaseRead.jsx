@@ -62,8 +62,8 @@ export default function DatabaseRead() {
 
     return (
         <div className="mx-auto max-w-5xl px-6 py-8">
-            <p><a className="text-[#1E3A8A] hover:underline" href="/database">← Повернутися до пошуку</a></p>
-            <h1 className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Першоджерело</h1>
+            <p><a className="text-[var(--accent)] hover:underline" href="/database">← Повернутися до пошуку</a></p>
+            <h1 className="mt-2 text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Першоджерело</h1>
             {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
             {!error && !html && <p className="mt-4 text-sm" style={{ color: '#6b7280' }}>Завантаження…</p>}
             <div ref={containerRef} className="mt-4 prose max-w-none" dangerouslySetInnerHTML={{ __html: html }} />

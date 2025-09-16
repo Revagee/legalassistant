@@ -52,7 +52,7 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
 
     return (
         <div className="mx-auto max-w-5xl px-4 py-8">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Акаунт</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Акаунт</h1>
 
             <div className="mt-6 grid gap-6 md:grid-cols-[220px,1fr]">
                 <aside className="rounded-xl border border-gray-200 bg-white p-4 h-max">

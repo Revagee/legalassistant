@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetPath } from './utils.js'
 import { Logo, ClockIcon, ShieldIcon, BadgeIcon } from './icons.jsx'
+import { Sun, Moon } from 'lucide-react'
 import { useAuth } from '../../lib/authContext.jsx'
 
 export function PrimaryButton({ children, onClick }) {
@@ -107,8 +108,8 @@ export function Header() {
         <header className="border-b border-gray-200" data-menu-open={menuOpen ? 'true' : 'false'}>
             <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
                 <a href="/" className="flex items-center gap-2" onClick={closeMenu} aria-label="На головну">
-                    <Logo color="#1E3A8A" />
-                    <span className="text-lg sm:text-xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Юридичний помічник</span>
+                    <Logo color="var(--accent)" />
+                    <span className="text-lg sm:text-xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Юридичний помічник</span>
                 </a>
 
                 <nav className="hidden md:flex items-center gap-5">
@@ -119,7 +120,10 @@ export function Header() {
 
                 <div className="flex items-center gap-2">
                     <button id="themeBtn" className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-all" style={{ background: 'var(--cardBg)', borderColor: 'var(--cardBorder)', color: 'var(--text)' }} type="button" aria-label="Переключити тему">
-                        <span id="themeIcon" className="text-base">🌙</span>
+                        <span id="themeIcon" className="text-base" aria-hidden="true" data-theme-icon="light">
+                            <span className="sun inline-flex pt-1"><Moon size={16} /></span>
+                            <span className="moon hidden inline-flex pt-1"><Sun size={16} /></span>
+                        </span>
                         <span id="themeLabel" className="font-semibold">Dark</span>
                     </button>
                     <div className="hidden md:block">

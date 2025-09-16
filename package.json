@@ -10,8 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "dompurify": "^3.2.6",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-toggle-group": "^1.1.11",
+    "@radix-ui/themes": "^3.2.1",
+    "classnames": "^2.5.1",
     "docx": "^8.5.0",
+    "dompurify": "^3.2.6",
+    "lucide-react": "^0.441.0",
     "marked": "^16.2.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

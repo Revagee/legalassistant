@@ -1,17 +1,76 @@
 
+
+
 :root{
-	--bg:#ffffff; --surface:#f8fafc; --ink:#0b132b; --muted:#64748b; --border:#e5e7eb;
+	--bg:#ffffff; --surface:#f8fafc; --surface-solid:#f8fafc; --surfaceSolid: var(--surface-solid); --ink:#0b132b; --muted:#64748b; --border:#e5e7eb;
 	--primary:#0b132b; --accent:#c5a46d; --accent-ink:#0b132b;
 	--grad-start:#4f46e5; --grad-end:#06b6d4; --gold:#c5a46d; --rose:#ef4444; --emerald:#10b981;
+    --ring: rgba(30,58,138,.25);
+    /* Сообщаем браузеру и библиотекам (Radix) о текущей теме */
+    color-scheme: light;
 }
  [data-theme="dark"]{
-	--bg:#0b0f14; --surface:#0f1622; --ink:#e6edf7; --muted:#a5b0c2; --border:#1f2937;
-	--primary:#e6edf7; --accent:#e6edf7; --accent-ink:#0b132b;
+	--bg:#0b0f14; --surface:rgba(15,22,34,0.6); --surface-solid:#0f1622; --surfaceSolid: var(--surface-solid); --ink:#e6edf7; --muted:#a5b0c2; --border:#1f2937;
+	--primary:#e6edf7; --accent:#93c5fd; --accent-ink:#0b132b;
+    --ring: rgba(147,197,253,.25);
+    color-scheme: dark;
  }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
-html{background:var(--bg)}
+/* Принудительно фон и цвет из CSS-переменных для обеих тем */
+html{background:var(--bg) !important; color:var(--ink) !important}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg) !important;line-height:1.6}
+/* Контейнеры приложения должны наследовать фон темы, а не белый от библиотек */
+#root, html, body, main, header, footer{background:var(--bg) !important; color:var(--ink) !important}
+/* Доп. перекрытие для радиксовского корневого контейнера внутри #root */
+#root > .rt-Theme, #root > .rt-BaseTheme{background:var(--bg) !important; color:var(--ink) !important}
+/* Обёртка Radix Themes по умолчанию красит фон. Делаем его равным фону страницы */
+.rt-Theme, .rt-BaseTheme{background:var(--bg) !important; color:var(--ink)}
+
+/* Управление видимостью иконок темы в кнопке: переключаем на основе дата-атрибута */
+#themeIcon[data-theme-icon="light"] .sun{display:inline-flex}
+#themeIcon[data-theme-icon="light"] .moon{display:none}
+#themeIcon[data-theme-icon="dark"] .sun{display:none}
+#themeIcon[data-theme-icon="dark"] .moon{display:inline-flex}
+
+/* Database page overrides (Radix components) */
+#database-page .rt-SelectTrigger{background:var(--surface-solid) !important; color:var(--ink) !important; border:1px solid var(--border) !important}
+#database-page .rt-SelectTrigger:focus{outline:2px solid var(--ring); outline-offset:2px}
+#database-page .rt-SelectTrigger[data-state="open"]{outline:2px solid var(--ring); outline-offset:2px}
+#database-page .rt-RadioCard{background:var(--surface) !important; border:1px solid var(--border) !important; color:var(--ink) !important}
+#database-page .rt-RadioCard:hover{filter:brightness(0.98)}
+#database-page .rt-RadioCard[data-state="checked"],
+#database-page .rt-RadioCard:focus-visible{outline:2px solid var(--ring); outline-offset:2px; border-color:var(--accent)}
+
+/* Radix portal content (Select dropdowns, poppers) should follow current theme */
+.rt-PopperContent,
+.rt-SelectContent,
+.rt-SelectViewport,
+.rt-ScrollAreaViewport{
+	background:var(--surface-solid) !important;
+	color:var(--ink) !important;
+	border:1px solid var(--border) !important;
+}
+.rt-SelectItem{
+	background:transparent !important;
+	color:var(--ink) !important;
+}
+.rt-SelectItem[data-highlighted]{
+	background:color-mix(in oklab, var(--accentBg) 18%, transparent) !important;
+	color:var(--ink) !important;
+}
+
+:where(.rt-RadioCardsRoot.rt-variant-surface) .rt-RadioCardsItem {
+	--radio-cards-item-border-width: 1px;
+	--radio-cards-item-background-color: var(--surface);
+}
+
+.rt-RadioCardsItem:where([data-state="checked"]){
+	--radio-cards-item-background-color: var(--accentBg);
+}
+.rt-RadioCardsItem:where(:not([data-state="checked"])){
+	color:var(--ink) !important;
+}
 
 /* Typography */
 h1{font-family:'Playfair Display', 'Source Serif Pro', Georgia, 'Times New Roman', serif;font-weight:700;line-height:1.15;margin:0 0 8px 0;font-size:56px}

@@ -29,40 +29,40 @@ import TrainerIndex from './pages/trainer/Index.jsx'
 import TrainerQuiz from './pages/trainer/Quiz.jsx'
 import TrainerResult from './pages/trainer/Result.jsx'
 import SimpleQuizDemo from './pages/trainer/SimpleQuizDemo.jsx'
+import Title from './components/Title.jsx'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Layout>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/templates" element={<TemplatesIndex />} />
-          <Route path="/template" element={<TemplateForm />} />
-          <Route path="/generated" element={<Generated />} />
-          <Route path="/calculators" element={<CalculatorsIndex />} />
-          <Route path="/calculators/fees" element={<Fees />} />
-          <Route path="/calculators/interest" element={<Interest />} />
-          <Route path="/calculators/penalty" element={<Penalty />} />
-          <Route path="/calculators/esv" element={<Esv />} />
-          <Route path="/calculators/alimony" element={<Alimony />} />
-          <Route path="/ai" element={<AIChat />} />
-          <Route path="/dictionary" element={<Dictionary />} />
-          <Route path="/database" element={<Database />} />
-          <Route path="/database/results" element={<DatabaseResults />} />
-          <Route path="/database/read" element={<DatabaseRead />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/register" element={<Register />} />
-          <Route path="/forgot" element={<Forgot />} />
-          <Route path="/auth/check-email" element={<CheckEmail />} />
-          <Route path="/reset-password" element={<Reset />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/auth/verify-success" element={<VerifySuccess />} />
-          <Route path="/trainer" element={<TrainerIndex />} />
-          <Route path="/trainer/quiz" element={<TrainerQuiz />} />
-          <Route path="/trainer/result" element={<TrainerResult />} />
-          <Route path="/trainer/simple-demo" element={<SimpleQuizDemo />} />
+          <Route path="/" element={<><Title title="Головна" /><Landing /></>} />
+          <Route path="/templates" element={<><Title title="Шаблони документів" /><TemplatesIndex /></>} />
+          <Route path="/template" element={<><Title title="Створення документа" /><TemplateForm /></>} />
+          <Route path="/generated" element={<><Title title="Сгенеровані документи" /><Generated /></>} />
+          <Route path="/calculators" element={<><Title title="Калькулятори" /><CalculatorsIndex /></>} />
+          <Route path="/calculators/fees" element={<><Title title="Судовий збір" /><Fees /></>} />
+          <Route path="/calculators/interest" element={<><Title title="Проценти" /><Interest /></>} />
+          <Route path="/calculators/penalty" element={<><Title title="Пеня" /><Penalty /></>} />
+          <Route path="/calculators/esv" element={<><Title title="ЄСВ" /><Esv /></>} />
+          <Route path="/calculators/alimony" element={<><Title title="Аліменти" /><Alimony /></>} />
+          <Route path="/ai" element={<><Title title="AI-чат" /><AIChat /></>} />
+          <Route path="/dictionary" element={<><Title title="Юридичний словник" /><Dictionary /></>} />
+          <Route path="/database" element={<><Title title="Правова база" /><Database /></>} />
+          <Route path="/database/results" element={<><Title title="Результати пошуку" /><DatabaseResults /></>} />
+          <Route path="/database/read" element={<><Title title="Документ" /><DatabaseRead /></>} />
+          <Route path="/account" element={<><Title title="Аккаунт" /><Account /></>} />
+          <Route path="/auth/login" element={<><Title title="Вхід" /><Login /></>} />
+          <Route path="/auth/register" element={<><Title title="Реєстрація" /><Register /></>} />
+          <Route path="/forgot" element={<><Title title="Відновлення доступу" /><Forgot /></>} />
+          <Route path="/auth/check-email" element={<><Title title="Перевірте пошту" /><CheckEmail /></>} />
+          <Route path="/reset-password" element={<><Title title="Скидання пароля" /><Reset /></>} />
+          <Route path="/verify-email" element={<><Title title="Підтвердження email" /><VerifyEmail /></>} />
+          <Route path="/auth/verify-success" element={<><Title title="Email підтверджений" /><VerifySuccess /></>} />
+          <Route path="/trainer" element={<><Title title="Тренажер" /><TrainerIndex /></>} />
+          <Route path="/trainer/quiz" element={<><Title title="Quiz" /><TrainerQuiz /></>} />
+          <Route path="/trainer/result" element={<><Title title="Результат" /><TrainerResult /></>} />
+          <Route path="/trainer/simple-demo" element={<><Title title="Демо Quiz" /><SimpleQuizDemo /></>} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -83,7 +83,7 @@ export default function TrainerQuiz({ subject = 'Тест', questions = [], ids 
 
     return (
         <div className="mx-auto max-w-5xl px-6 py-8">
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: '#1E3A8A' }}>Тема: {effectiveSubject}</h1>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Тема: {effectiveSubject}</h1>
             {effectiveIds && effectiveIds.length > 0 && (
                 <div className="mt-4 flex items-center justify-between rounded-md border border-gray-200 bg-white p-3">
                     <div className="text-sm text-gray-700">Час: <span className="font-semibold">{mmss(remainingMs)}</span></div>
@@ -110,7 +110,7 @@ export default function TrainerQuiz({ subject = 'Тест', questions = [], ids 
                         </div>
                     </div>
                 ))}
-                <button className="rounded-md bg-[#1E3A8A] px-4 py-2 text-sm font-medium text-white hover:opacity-95" type="button" onClick={finishQuiz} disabled={paused}>Завершити</button>
+                <button className="rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95" type="button" onClick={finishQuiz} disabled={paused}>Завершити</button>
             </div>
         </div>
     )
