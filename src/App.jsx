@@ -17,6 +17,7 @@ import Dictionary from './pages/Dictionary.jsx'
 import Database from './pages/Database.jsx'
 import DatabaseResults from './pages/DatabaseResults.jsx'
 import DatabaseRead from './pages/DatabaseRead.jsx'
+import Documents from './pages/Documents.jsx'
 import Account from './pages/Account.jsx'
 import Login from './pages/auth/Login.jsx'
 import Register from './pages/auth/Register.jsx'
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="/trainer/quiz" element={<><Title title="Quiz" /><TrainerQuiz /></>} />
           <Route path="/trainer/result" element={<><Title title="Результат" /><TrainerResult /></>} />
           <Route path="/trainer/simple-demo" element={<><Title title="Демо Quiz" /><SimpleQuizDemo /></>} />
+          <Route path="/documents" element={<><Title title="Документи" /><Documents /></>} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -1,0 +1,485 @@
+{
+  "generatedAt": "2025-09-16T12:00:10.605Z",
+  "categories": [
+    {
+      "key": "contracts",
+      "label": "Договори",
+      "files": [
+        {
+          "name": "Агентський",
+          "filename": "Агентський.docx",
+          "path": "/files/contracts/Агентський.docx",
+          "ext": "docx",
+          "size": 11346
+        },
+        {
+          "name": "Виготовлення Продукції Із Матеріалів Замовника",
+          "filename": "Виготовлення продукції із матеріалів замовника.docx",
+          "path": "/files/contracts/Виготовлення продукції із матеріалів замовника.docx",
+          "ext": "docx",
+          "size": 13576
+        },
+        {
+          "name": "Грошова Позика",
+          "filename": "Грошова позика.docx",
+          "path": "/files/contracts/Грошова позика.docx",
+          "ext": "docx",
+          "size": 12148
+        },
+        {
+          "name": "Зберігання Транспортних Засобів",
+          "filename": "Зберігання транспортних засобів.docx",
+          "path": "/files/contracts/Зберігання транспортних засобів.docx",
+          "ext": "docx",
+          "size": 13006
+        },
+        {
+          "name": "Зберігання(1)",
+          "filename": "Зберігання(1).docx",
+          "path": "/files/contracts/Зберігання(1).docx",
+          "ext": "docx",
+          "size": 11219
+        },
+        {
+          "name": "Зберігання(2)",
+          "filename": "Зберігання(2).docx",
+          "path": "/files/contracts/Зберігання(2).docx",
+          "ext": "docx",
+          "size": 14280
+        },
+        {
+          "name": "Інформаційні (консультаційні) Послуги",
+          "filename": "Інформаційні (консультаційні) послуги.docx",
+          "path": "/files/contracts/Інформаційні (консультаційні) послуги.docx",
+          "ext": "docx",
+          "size": 12043
+        },
+        {
+          "name": "Комерційне Використання ПЗ",
+          "filename": "Комерційне використання ПЗ.docx",
+          "path": "/files/contracts/Комерційне використання ПЗ.docx",
+          "ext": "docx",
+          "size": 11873
+        },
+        {
+          "name": "Комерційне Представництво",
+          "filename": "Комерційне представництво.docx",
+          "path": "/files/contracts/Комерційне представництво.docx",
+          "ext": "docx",
+          "size": 16628
+        },
+        {
+          "name": "Кредитна Лінія",
+          "filename": "Кредитна лінія.docx",
+          "path": "/files/contracts/Кредитна лінія.docx",
+          "ext": "docx",
+          "size": 12939
+        },
+        {
+          "name": "Кредитний (банк)",
+          "filename": "Кредитний (банк).docx",
+          "path": "/files/contracts/Кредитний (банк).docx",
+          "ext": "docx",
+          "size": 14960
+        },
+        {
+          "name": "Кредитний (Кредитодавець)",
+          "filename": "Кредитний (Кредитодавець).docx",
+          "path": "/files/contracts/Кредитний (Кредитодавець).docx",
+          "ext": "docx",
+          "size": 11166
+        },
+        {
+          "name": "Купівлі-продажу",
+          "filename": "Купівлі-продажу.docx",
+          "path": "/files/contracts/Купівлі-продажу.docx",
+          "ext": "docx",
+          "size": 17196
+        },
+        {
+          "name": "Купівлі-продажу Товарів",
+          "filename": "Купівлі-продажу товарів.docx",
+          "path": "/files/contracts/Купівлі-продажу товарів.docx",
+          "ext": "docx",
+          "size": 11103
+        },
+        {
+          "name": "Ліцензійний",
+          "filename": "Ліцензійний.docx",
+          "path": "/files/contracts/Ліцензійний.docx",
+          "ext": "docx",
+          "size": 14311
+        },
+        {
+          "name": "Ліцензійний (використання ТМ)",
+          "filename": "Ліцензійний (використання ТМ).docx",
+          "path": "/files/contracts/Ліцензійний (використання ТМ).docx",
+          "ext": "docx",
+          "size": 15061
+        },
+        {
+          "name": "Ліцензійний (письмовий Твір)",
+          "filename": "Ліцензійний (письмовий твір).doc",
+          "path": "/files/contracts/Ліцензійний (письмовий твір).doc",
+          "ext": "doc",
+          "size": 12657
+        },
+        {
+          "name": "Маркетингові Послуги",
+          "filename": "Маркетингові послуги.docx",
+          "path": "/files/contracts/Маркетингові послуги.docx",
+          "ext": "docx",
+          "size": 12875
+        },
+        {
+          "name": "Надання Рекламних Послуг",
+          "filename": "Надання рекламних послуг.docx",
+          "path": "/files/contracts/Надання рекламних послуг.docx",
+          "ext": "docx",
+          "size": 11639
+        },
+        {
+          "name": "Оренда Нежитлового Приміщення",
+          "filename": "Оренда нежитлового приміщення.docx",
+          "path": "/files/contracts/Оренда нежитлового приміщення.docx",
+          "ext": "docx",
+          "size": 18989
+        },
+        {
+          "name": "Оренда Нежитлового Приміщення (будівлі)",
+          "filename": "Оренда нежитлового приміщення (будівлі).docx",
+          "path": "/files/contracts/Оренда нежитлового приміщення (будівлі).docx",
+          "ext": "docx",
+          "size": 11136
+        },
+        {
+          "name": "Оренда Складського Приміщення",
+          "filename": "Оренда складського приміщення.docx",
+          "path": "/files/contracts/Оренда складського приміщення.docx",
+          "ext": "docx",
+          "size": 20100
+        },
+        {
+          "name": "Охорони",
+          "filename": "Охорони.docx",
+          "path": "/files/contracts/Охорони.docx",
+          "ext": "docx",
+          "size": 14061
+        },
+        {
+          "name": "Підряд (капітальне Будівництво)",
+          "filename": "Підряд (капітальне будівництво).docx",
+          "path": "/files/contracts/Підряд (капітальне будівництво).docx",
+          "ext": "docx",
+          "size": 17275
+        },
+        {
+          "name": "Позика",
+          "filename": "Позика.docx",
+          "path": "/files/contracts/Позика.docx",
+          "ext": "docx",
+          "size": 10052
+        },
+        {
+          "name": "Поставки",
+          "filename": "Поставки.docx",
+          "path": "/files/contracts/Поставки.docx",
+          "ext": "docx",
+          "size": 12175
+        },
+        {
+          "name": "Поставки Товару",
+          "filename": "Поставки товару.docx",
+          "path": "/files/contracts/Поставки товару.docx",
+          "ext": "docx",
+          "size": 15333
+        },
+        {
+          "name": "Поставки Товару (передплата)",
+          "filename": "Поставки товару (передплата).docx",
+          "path": "/files/contracts/Поставки товару (передплата).docx",
+          "ext": "docx",
+          "size": 10270
+        },
+        {
+          "name": "Розміщення Сайту",
+          "filename": "Розміщення сайту.docx",
+          "path": "/files/contracts/Розміщення сайту.docx",
+          "ext": "docx",
+          "size": 15623
+        },
+        {
+          "name": "Юридичні Послуги",
+          "filename": "Юридичні послуги.docx",
+          "path": "/files/contracts/Юридичні послуги.docx",
+          "ext": "docx",
+          "size": 15040
+        }
+      ]
+    },
+    {
+      "key": "claims",
+      "label": "Позови",
+      "files": [
+        {
+          "name": "Заява про видачу судового наказу",
+          "filename": "zayava_pro_vidachu_sudovogo_nakazu_.docx",
+          "path": "/files/claims/zayava_pro_vidachu_sudovogo_nakazu_.docx",
+          "ext": "docx",
+          "size": 18110
+        },
+        {
+          "name": "Заява про встановлення родинних відносин",
+          "filename": "Zayava_pro_vstanovlennya_rodunnux_vidnosun.docx",
+          "path": "/files/claims/Zayava_pro_vstanovlennya_rodunnux_vidnosun.docx",
+          "ext": "docx",
+          "size": 22256
+        },
+        {
+          "name": "Заява про забезпечення позову",
+          "filename": "Zayava_pro_zabezpechennya_pozovu.docx",
+          "path": "/files/claims/Zayava_pro_zabezpechennya_pozovu.docx",
+          "ext": "docx",
+          "size": 20883
+        },
+        {
+          "name": "Позов за борговою розпискою",
+          "filename": "pozov_borgova_rozpiska.rtf",
+          "path": "/files/claims/pozov_borgova_rozpiska.rtf",
+          "ext": "rtf",
+          "size": 506709
+        },
+        {
+          "name": "Позов до приватної особи",
+          "filename": "Pozov_do_privatnoi_osobi.doc",
+          "path": "/files/claims/Pozov_do_privatnoi_osobi.doc",
+          "ext": "doc",
+          "size": 60416
+        },
+        {
+          "name": "Позов до СМР",
+          "filename": "Pozov_do_SMR.doc",
+          "path": "/files/claims/Pozov_do_SMR.doc",
+          "ext": "doc",
+          "size": 80384
+        },
+        {
+          "name": "Позов про стягнення аліментів",
+          "filename": "Pozov_pro_styagnennya_alimentiv.docx",
+          "path": "/files/claims/Pozov_pro_styagnennya_alimentiv.docx",
+          "ext": "docx",
+          "size": 24861
+        },
+        {
+          "name": "Позов про стягнення коштів на утримання майна",
+          "filename": "Pozov_pro_styagnennya_koshtiv_na_yntrumaannya_mayna.docx",
+          "path": "/files/claims/Pozov_pro_styagnennya_koshtiv_na_yntrumaannya_mayna.docx",
+          "ext": "docx",
+          "size": 36701
+        },
+        {
+          "name": "Позов про стягнення заробітної плати",
+          "filename": "Pozov_pro_styagnennya_ZP.docx",
+          "path": "/files/claims/Pozov_pro_styagnennya_ZP.docx",
+          "ext": "docx",
+          "size": 21932
+        },
+        {
+          "name": "Позов про усунення перешкод",
+          "filename": "Pozov_pro_ysynennya_pereshkod.docx",
+          "path": "/files/claims/Pozov_pro_ysynennya_pereshkod.docx",
+          "ext": "docx",
+          "size": 24906
+        },
+        {
+          "name": "Позов про захист честі та гідності",
+          "filename": "Pozov_pro_zahust_chesti_ta_gidnosti.docx",
+          "path": "/files/claims/Pozov_pro_zahust_chesti_ta_gidnosti.docx",
+          "ext": "docx",
+          "size": 32091
+        },
+        {
+          "name": "Позов про спадкування частки у спільному майні",
+          "filename": "Pozov_spadkuvannya_chastku_y_spilnomy_mayni.docx",
+          "path": "/files/claims/Pozov_spadkuvannya_chastku_y_spilnomy_mayni.docx",
+          "ext": "docx",
+          "size": 28240
+        },
+        {
+          "name": "Як діяти у випадку нападу собаки",
+          "filename": "Ak_diati_u_vipadku_napadu_sobaki.doc",
+          "path": "/files/claims/Ak_diati_u_vipadku_napadu_sobaki.doc",
+          "ext": "doc",
+          "size": 44032
+        },
+        {
+          "name": "Поділ майна подружжя",
+          "filename": "PODIL_MAUNA_PODRYGYAM.docx",
+          "path": "/files/claims/PODIL_MAUNA_PODRYGYAM.docx",
+          "ext": "docx",
+          "size": 22818
+        },
+        {
+          "name": "Позовна заява ГБК",
+          "filename": "pozovna_zayava_GBK.docx",
+          "path": "/files/claims/pozovna_zayava_GBK.docx",
+          "ext": "docx",
+          "size": 26617
+        },
+        {
+          "name": "Позовна заява про стягнення заробітної плати",
+          "filename": "pozovna_zayava_pro_styagnennya_zp.docx",
+          "path": "/files/claims/pozovna_zayava_pro_styagnennya_zp.docx",
+          "ext": "docx",
+          "size": 22103
+        },
+        {
+          "name": "Позовна заява про стягнення заробітної плати (1)",
+          "filename": "pozovna_zayava_pro_styagnennya_zp (1).docx",
+          "path": "/files/claims/pozovna_zayava_pro_styagnennya_zp (1).docx",
+          "ext": "docx",
+          "size": 22103
+        },
+        {
+          "name": "Про поновлення на роботі (копія)",
+          "filename": "Pro_ponovlennya_na_roboti_copy.docx",
+          "path": "/files/claims/Pro_ponovlennya_na_roboti_copy.docx",
+          "ext": "docx",
+          "size": 24099
+        },
+        {
+          "name": "Про розірвання шлюбу",
+          "filename": "pro_rozirvannya_shl.rtf",
+          "path": "/files/claims/pro_rozirvannya_shl.rtf",
+          "ext": "rtf",
+          "size": 506074
+        },
+        {
+          "name": "Про стягнення шкоди (ДТП)",
+          "filename": "Pro_styagnennua_shkodi_DTP.docx",
+          "path": "/files/claims/Pro_styagnennua_shkodi_DTP.docx",
+          "ext": "docx",
+          "size": 22526
+        },
+        {
+          "name": "Визнати таким, що втратив право користуватися (копія)",
+          "filename": "Vuznatu_takum_wo_vtratuv_pravo_korustyvatusya_copy.docx",
+          "path": "/files/claims/Vuznatu_takum_wo_vtratuv_pravo_korustyvatusya_copy.docx",
+          "ext": "docx",
+          "size": 26996
+        },
+        {
+          "name": "Заява про встановлення факту належності документа",
+          "filename": "Zajava_pro_vstanovlennja_faktu_nalegnosti_dokumentu.docx",
+          "path": "/files/claims/Zajava_pro_vstanovlennja_faktu_nalegnosti_dokumentu.docx",
+          "ext": "docx",
+          "size": 21558
+        },
+        {
+          "name": "Зразок позову про скасування адмінпостанови",
+          "filename": "Zrazok_pozovu_pro_skasuvanna_adminpostanovi.docx",
+          "path": "/files/claims/Zrazok_pozovu_pro_skasuvanna_adminpostanovi.docx",
+          "ext": "docx",
+          "size": 29265
+        },
+        {
+          "name": "Зразок скарги на адмінкомісію (новий)",
+          "filename": "Zrazok_skargi_na_adminkomisiu_New.docx",
+          "path": "/files/claims/Zrazok_skargi_na_adminkomisiu_New.docx",
+          "ext": "docx",
+          "size": 15939
+        }
+      ]
+    },
+    {
+      "key": "complaints applications",
+      "label": "Скарги та заяви",
+      "files": [
+        {
+          "name": "Зразок Апеляційної Скарги На Рішення Суду",
+          "filename": "Зразок апеляційної скарги на рішення суду.docx",
+          "path": "/files/complaints applications/Зразок апеляційної скарги на рішення суду.docx",
+          "ext": "docx",
+          "size": 13106
+        },
+        {
+          "name": "Зразок Відвід Судді",
+          "filename": "Зразок відвід судді.docx",
+          "path": "/files/complaints applications/Зразок відвід судді.docx",
+          "ext": "docx",
+          "size": 13480
+        },
+        {
+          "name": "Зразок Відзив На Апеляційну Скаргу",
+          "filename": "Зразок відзив на апеляційну скаргу.docx",
+          "path": "/files/complaints applications/Зразок відзив на апеляційну скаргу.docx",
+          "ext": "docx",
+          "size": 12998
+        },
+        {
+          "name": "Зразок Відмова Від Апеляційної Скарги",
+          "filename": "Зразок відмова від апеляційної скарги.docx",
+          "path": "/files/complaints applications/Зразок відмова від апеляційної скарги.docx",
+          "ext": "docx",
+          "size": 13461
+        },
+        {
+          "name": "Зразок Касаційна Скарга",
+          "filename": "Зразок касаційна скарга.docx",
+          "path": "/files/complaints applications/Зразок касаційна скарга.docx",
+          "ext": "docx",
+          "size": 13204
+        },
+        {
+          "name": "Зразок Клопотання Про Видачу Процесуального Документа",
+          "filename": "Зразок клопотання про видачу процесуального документа.docx",
+          "path": "/files/complaints applications/Зразок клопотання про видачу процесуального документа.docx",
+          "ext": "docx",
+          "size": 12648
+        },
+        {
+          "name": "Зразок Клопотання Про Відкладення Розгляду Справи",
+          "filename": "Зразок клопотання про відкладення розгляду справи.docx",
+          "path": "/files/complaints applications/Зразок клопотання про відкладення розгляду справи.docx",
+          "ext": "docx",
+          "size": 12945
+        },
+        {
+          "name": "Зразок Клопотання Про Ознайомлення З Матеріалами Справи",
+          "filename": "Зразок клопотання про ознайомлення з матеріалами справи.docx",
+          "path": "/files/complaints applications/Зразок клопотання про ознайомлення з матеріалами справи.docx",
+          "ext": "docx",
+          "size": 12819
+        },
+        {
+          "name": "Зразок Клопотання Про Участь У Судовому Засіданні В Режимі Відеоконференції",
+          "filename": "Зразок клопотання про участь у судовому засіданні в режимі відеоконференції.docx",
+          "path": "/files/complaints applications/Зразок клопотання про участь у судовому засіданні в режимі відеоконференції.docx",
+          "ext": "docx",
+          "size": 13182
+        },
+        {
+          "name": "Зразок Про Долучення До Матеріалів Справи",
+          "filename": "Зразок про долучення до матеріалів справи.docx",
+          "path": "/files/complaints applications/Зразок про долучення до матеріалів справи.docx",
+          "ext": "docx",
+          "size": 13036
+        },
+        {
+          "name": "Зразок Про Поновлення Строку На Подання Апеляційної Скарги",
+          "filename": "Зразок про поновлення строку на подання апеляційної скарги.docx",
+          "path": "/files/complaints applications/Зразок про поновлення строку на подання апеляційної скарги.docx",
+          "ext": "docx",
+          "size": 13059
+        },
+        {
+          "name": "Зразок Про Розгляд Справи Без Участі Представника",
+          "filename": "Зразок про розгляд справи без участі представника.docx",
+          "path": "/files/complaints applications/Зразок про розгляд справи без участі представника.docx",
+          "ext": "docx",
+          "size": 13016
+        }
+      ]
+    }
+  ]
+}

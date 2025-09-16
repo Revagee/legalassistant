@@ -49,6 +49,7 @@ export function FeaturesCarousel() {
     const items = useMemo(() => ([
         { href: '/ai', title: 'Юридичний ШІ', text: 'Відповіді з посиланнями на закон. Пошук по базі та РАГ.', img: assetPath('lawai.jpeg') },
         { href: '/templates', title: 'Генератор документів', text: 'Позови, заяви, договори на основі форм.', img: assetPath('document generation.jpeg') },
+        { href: '/documents', title: 'Документи', text: 'Каталог з готовими зразками: перегляд і швидке завантаження.', img: assetPath('generated documents.jpeg') },
         { href: '/calculators', title: 'Калькулятори', text: 'Судовий збір, 3% річних, пеня, ЄСВ.', img: assetPath('calculator.jpeg') },
         { href: '/database', title: 'Законодавча база', text: 'Пошук по статтях і ключових словах.', img: assetPath('legaldatabase.jpeg') },
         { href: '/dictionary', title: 'Юридичний словник', text: 'Визначення термінів простими словами.', img: assetPath('dictionary.jpeg') },
@@ -99,6 +100,7 @@ export function Header() {
         { href: '/database', label: 'База' },
         { href: '/dictionary', label: 'Словник' },
         { href: '/trainer', label: 'Тренажер' },
+        { href: '/documents', label: 'Документи' },
         { href: '/generated', label: 'Файли' },
     ]
 
