@@ -202,3 +202,4 @@ header[data-menu-open="true"] .mobile-nav{display:block}
 @media (min-width: 768px){
 	header .mobile-nav{display:none !important}
 }
+.logo-colors, .logo-colors svg, .logo-colors svg path{color:var(--accent);fill:var(--accent);stroke:var(--accent)}

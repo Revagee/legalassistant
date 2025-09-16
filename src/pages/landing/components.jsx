@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { assetPath } from './utils.js'
-import { Logo, ClockIcon, ShieldIcon, BadgeIcon } from './icons.jsx'
 import { Sun, Moon } from 'lucide-react'
 import { useAuth } from '../../lib/authContext.jsx'
+import Logo from '../../assets/logo.jsx'
 
 export function PrimaryButton({ children, onClick }) {
     return (
@@ -110,7 +110,7 @@ export function Header() {
         <header className="border-b border-gray-200" data-menu-open={menuOpen ? 'true' : 'false'}>
             <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
                 <a href="/" className="flex items-center gap-2" onClick={closeMenu} aria-label="На головну">
-                    <Logo color="var(--accent)" />
+                    <Logo className="h-8 w-8" color="var(--accent)" />
                     <span className="text-lg sm:text-xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Юридичний помічник</span>
                 </a>
 
