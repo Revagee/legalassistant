@@ -90,10 +90,10 @@ export function FeaturesCarousel() {
 }
 
 export function Header() {
-    const { isAuthenticated } = useAuth()
+    const { isAuthenticated, user } = useAuth()
     const [menuOpen, setMenuOpen] = useState(false)
 
-    const navItems = [
+    const baseNavItems = [
         { href: '/ai', label: 'ШІ' },
         { href: '/templates', label: 'Генератор' },
         { href: '/calculators', label: 'Калькулятори' },
@@ -103,6 +103,10 @@ export function Header() {
         { href: '/documents', label: 'Документи' },
         { href: '/generated', label: 'Файли' },
     ]
+    const shouldShowPlus = !user || user?.subscription !== true
+    const navItems = shouldShowPlus
+        ? [...baseNavItems, { href: '/subscription', label: 'Помічник+', special: true }]
+        : baseNavItems
 
     const closeMenu = () => setMenuOpen(false)
 
@@ -116,7 +120,18 @@ export function Header() {
 
                 <nav className="hidden md:flex items-center gap-5">
                     {navItems.map((item) => (
-                        <a key={item.href} href={item.href} className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">{item.label}</a>
+                        item.special ? (
+                            <a
+                                key={item.href}
+                                href={item.href}
+                                className="text-sm font-semibold rounded-full px-3 py-1.5 transition-all"
+                                style={{ background: 'var(--accentBg, var(--gold))', color: 'var(--btnText, var(--accent-ink))', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.15)' }}
+                            >
+                                {item.label}
+                            </a>
+                        ) : (
+                            <a key={item.href} href={item.href} className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">{item.label}</a>
+                        )
                     ))}
                 </nav>
 
@@ -154,7 +169,19 @@ export function Header() {
             <div className="mobile-nav md:hidden border-t border-gray-200">
                 <div className="mx-auto max-w-7xl px-6 py-3 grid gap-2">
                     {navItems.map((item) => (
-                        <a key={item.href} href={item.href} onClick={closeMenu} className="rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">{item.label}</a>
+                        item.special ? (
+                            <a
+                                key={item.href}
+                                href={item.href}
+                                onClick={closeMenu}
+                                className="rounded-md text-center px-3 py-2 text-sm font-semibold"
+                                style={{ background: 'var(--accentBg, var(--gold))', color: 'var(--btnText, var(--accent-ink))' }}
+                            >
+                                {item.label}
+                            </a>
+                        ) : (
+                            <a key={item.href} href={item.href} onClick={closeMenu} className="rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">{item.label}</a>
+                        )
                     ))}
                     <div className="pt-1">
                         {isAuthenticated ? (

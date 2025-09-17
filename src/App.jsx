@@ -30,6 +30,7 @@ import TrainerIndex from './pages/trainer/Index.jsx'
 import TrainerQuiz from './pages/trainer/Quiz.jsx'
 import TrainerResult from './pages/trainer/Result.jsx'
 import SimpleQuizDemo from './pages/trainer/SimpleQuizDemo.jsx'
+import Subscription from './pages/Subscription.jsx'
 import Title from './components/Title.jsx'
 
 export default function App() {
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/trainer/result" element={<><Title title="Результат" /><TrainerResult /></>} />
           <Route path="/trainer/simple-demo" element={<><Title title="Демо Quiz" /><SimpleQuizDemo /></>} />
           <Route path="/documents" element={<><Title title="Документи" /><Documents /></>} />
+          <Route path="/subscription" element={<><Title title="Підписка" /><Subscription /></>} />
         </Routes>
       </Layout>
     </BrowserRouter>
