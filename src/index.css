@@ -209,6 +209,8 @@ header[data-menu-open="true"] .mobile-nav{display:block}
 .chat-bubble{max-width:85%; padding:10px 14px; border-radius:18px; font-size:14px; line-height:1.5; word-break:break-word; box-shadow:0 1px 0 rgba(0,0,0,.03)}
 .chat-bubble--user{background-color:var(--chat-bubble-user-bg); color:var(--ink); border-top-right-radius:6px}
 .chat-bubble--ai{box-shadow:none}
+/* Error bubble appears like AI message but with red emphasis */
+.chat-bubble--error{background:color-mix(in oklab, var(--rose) 12%, transparent); border:1px solid color-mix(in oklab, var(--rose) 40%, transparent); color:var(--rose)}
 
 /* Tool call inline loader */
 .tool-call-ui{margin-top:6px; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted)}

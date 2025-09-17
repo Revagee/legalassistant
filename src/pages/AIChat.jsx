@@ -3,12 +3,13 @@ import { createPortal } from 'react-dom'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useAuth } from '../lib/authContext.jsx'
-import { ChatAPI, getBaseUrl, getStoredToken } from '../lib/api.js'
+import { ChatAPI, getBaseUrl } from '../lib/api.js'
 import { Trash2, Pencil, Send } from 'lucide-react'
 
 export default function AIChat() {
     const bodyRef = useRef(null)
     const inputRef = useRef(null)
+    const formRef = useRef(null)
     const esRef = useRef(null)
     const [drawerOpen, setDrawerOpen] = useState(false)
     const { isAuthenticated, loading } = useAuth()
@@ -74,10 +75,8 @@ export default function AIChat() {
         closeStream()
         if (!threadId || !isAuthenticated) return
         const base = getBaseUrl()
-        const token = getStoredToken()
         const url = new URL((base.startsWith('http') ? base : window.location.origin + base) + '/chat/stream')
         url.searchParams.set('thread_id', threadId)
-        if (token) url.searchParams.set('access_token', token)
         const es = new EventSource(url.toString())
         esRef.current = es
         setSendDisabled(true)
@@ -106,9 +105,18 @@ export default function AIChat() {
             if (typeof ev.data === 'string' && ev.data.length) appendAiChunk(ev.data)
         })
         es.addEventListener('system', (ev) => {
-            if ((ev.data || '').trim() === 'end') {
+            const text = (ev.data || '').trim()
+            if (text === 'end') {
                 closeStream()
                 fetchThreads().catch(() => { })
+            } else if (text === 'error') {
+                // Сервер сообщил об ошибке генерации в процессе SSE
+                setMessages((prev) => ([
+                    ...prev,
+                    { type: 'ai_error', content: 'Помилка генерації відповіді' }
+                ]))
+                if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+                closeStream()
             }
         })
         es.addEventListener('tool_call', (ev) => {
@@ -116,7 +124,12 @@ export default function AIChat() {
             setToolCallText(text)
         })
         es.onerror = () => {
-            // close silently if server returned 204/no stream
+            // Если соединение оборвалось, покажем единичное сообщение об ошибке
+            setMessages((prev) => {
+                if (prev.length && prev[prev.length - 1].type === 'ai_error') return prev
+                return [...prev, { type: 'ai_error', content: 'Помилка генерації відповіді' }]
+            })
+            if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
             closeStream()
         }
     }
@@ -178,6 +191,18 @@ export default function AIChat() {
         const newH = Math.min(el.scrollHeight, maxH)
         el.style.height = newH + 'px'
         el.style.overflowY = (el.scrollHeight > maxH) ? 'auto' : 'hidden'
+        // После изменения высоты инпута обновляем нижний отступ области сообщений
+        if (typeof requestAnimationFrame === 'function') requestAnimationFrame(updateChatBottomPadding)
+        else updateChatBottomPadding()
+    }
+
+    function updateChatBottomPadding() {
+        const bodyEl = bodyRef.current
+        const formEl = formRef.current
+        if (!bodyEl) return
+        const formH = formEl ? formEl.offsetHeight : 0
+        const buffer = 12 // небольшой запас
+        bodyEl.style.paddingBottom = (formH + buffer) + 'px'
     }
 
     function handleNewChat() {
@@ -234,6 +259,14 @@ export default function AIChat() {
             }
         })
     }, [messages])
+
+    useEffect(() => {
+        // Инициализируем динамический нижний отступ и обновляем при ресайзе
+        function onResize() { updateChatBottomPadding() }
+        updateChatBottomPadding()
+        window.addEventListener('resize', onResize)
+        return () => window.removeEventListener('resize', onResize)
+    }, [])
 
     useEffect(() => {
         let mounted = true
@@ -338,13 +371,19 @@ export default function AIChat() {
                             <span className="text-[13px]" style={{ color: 'var(--accent)' }}>Чати</span>
                         </button>
                     </div>
-                    <div ref={bodyRef} id="chatBody" className="mt-2 flex-1 overflow-y-auto bg-white p-2 sm:p-6 pb-28 space-y-4" style={{ border: 'none', borderRadius: 0 }}>
+                    <div ref={bodyRef} id="chatBody" className="mt-2 flex-1 overflow-y-auto bg-white p-2 sm:p-6 space-y-4" style={{ border: 'none', borderRadius: 0 }}>
                         {messages && messages.length > 0 ? (
                             messages.map((m, idx) => (
                                 <div key={idx}>
                                     {m.type === 'human' ? (
                                         <div className="flex justify-end">
                                             <div className="chat-bubble chat-bubble--user">{m.content}</div>
+                                        </div>
+                                    ) : m.type === 'ai_error' ? (
+                                        <div className="flex justify-start">
+                                            <div className="chat-bubble chat-bubble--ai chat-bubble--error">
+                                                <div className="md-answer whitespace-pre-wrap">{m.content}</div>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="flex justify-start">
@@ -367,7 +406,7 @@ export default function AIChat() {
                             </div>
                         )}
                     </div>
-                    <form id="chatForm" onSubmit={handleSubmit} className="absolute bottom-0 left-0 right-0 flex items-end gap-3 px-4 py-3 sm:py-4 border-t" style={{ background: 'var(--surface-solid)', borderColor: 'var(--border)' }}>
+                    <form id="chatForm" ref={formRef} onSubmit={handleSubmit} className="absolute bottom-0 left-0 right-0 flex items-end gap-3 px-4 py-3 sm:py-4 border-t" style={{ background: 'var(--surface-solid)', borderColor: 'var(--border)' }}>
                         <textarea ref={inputRef} onInput={autoGrowTextarea} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }} id="chatInput" name="q" rows={1} placeholder="Опишіть питання… (Shift+Enter — новий рядок)" className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" style={{ overflowY: 'hidden' }}></textarea>
                         <button id="sendBtn" disabled={!isAuthenticated || isStreaming} aria-disabled={!isAuthenticated || isStreaming ? 'true' : 'false'} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${(isStreaming || !isAuthenticated) ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit" aria-label="Надіслати">
                             <Send size={18} />
