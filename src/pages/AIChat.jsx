@@ -4,7 +4,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useAuth } from '../lib/authContext.jsx'
 import { ChatAPI, getBaseUrl, getStoredToken } from '../lib/api.js'
-import { Trash2, Pencil } from 'lucide-react'
+import { Trash2, Pencil, Send } from 'lucide-react'
 
 export default function AIChat() {
     const bodyRef = useRef(null)
@@ -241,7 +241,10 @@ export default function AIChat() {
     }, [])
 
     return (
-        <div className="px-6 sm:px-8 py-6 sm:py-8 h-[100dvh]">
+        <div className="h-full" style={{
+            display: 'grid',
+            gridTemplateRows: 'auto 1fr',
+        }}>
             {/* Mobile drawer for threads */}
             <div className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform shadow-xl transition-transform duration-200 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} md:hidden`} style={{ background: 'var(--surface-solid)' }}>
                 <div className="border-b p-4 flex items-center justify-between">
@@ -277,9 +280,9 @@ export default function AIChat() {
                 <div className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={() => setDrawerOpen(false)} />
             )}
 
-            <div className="mx-auto flex h-full max-w-[100%] px-6 relative">
-                <aside className="hidden md:block md:w-1/4 md:pr-6">
-                    <div className="rounded-xl border border-gray-200 bg-white p-4 mt-6">
+            <div className="flex h-full max-w-[100%] relative min-h-0" style={{ padding: '0' }}>
+                <aside className="hidden md:block md:w-72 lg:w-80 shrink-0" style={{ borderRight: '1px solid var(--border)' }}>
+                    <div className="p-4">
                         <div className="mb-3 flex items-center justify-between">
                             <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Останні запити</div>
                             <button type="button" onClick={handleNewChat} className="text-xs font-medium hover:underline" style={{ color: 'var(--accent)' }}>Новий чат</button>
@@ -309,7 +312,7 @@ export default function AIChat() {
                 </aside>
 
                 <section className="flex h-full min-h-0 flex-1 flex-col">
-                    <div className="mb-2 flex items-center justify-between">
+                    <div className="mb-2 flex items-center justify-between px-4 pt-2">
                         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight pt-2" style={{ color: 'var(--accent)' }}>Юридичний ШІ</h1>
                         <button type="button" className="md:hidden inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm" onClick={() => setDrawerOpen(true)} aria-label="Відкрити меню тредів">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5" style={{ color: 'var(--accent)' }}>
@@ -318,7 +321,7 @@ export default function AIChat() {
                             <span className="text-[13px]" style={{ color: 'var(--accent)' }}>Чати</span>
                         </button>
                     </div>
-                    <div ref={bodyRef} id="chatBody" className="mt-2 flex-1 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 sm:p-6 space-y-4">
+                    <div ref={bodyRef} id="chatBody" className="mt-2 flex-1 overflow-y-auto bg-white p-2 sm:p-6 space-y-4" style={{ border: 'none', borderRadius: 0 }}>
                         {messages && messages.length > 0 ? (
                             messages.map((m, idx) => (
                                 <div key={idx}>
@@ -347,10 +350,10 @@ export default function AIChat() {
                             </div>
                         )}
                     </div>
-                    <form id="chatForm" onSubmit={handleSubmit} className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+                    <form id="chatForm" onSubmit={handleSubmit} className="mt-4 flex items-end gap-3 px-4 pb-4">
                         <textarea ref={inputRef} onInput={autoGrowTextarea} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }} id="chatInput" name="q" rows={1} placeholder="Опишіть питання… (Shift+Enter — новий рядок)" className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" style={{ overflowY: 'hidden' }}></textarea>
-                        <button id="sendBtn" disabled={isStreaming} aria-disabled={isStreaming ? 'true' : 'false'} className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-medium text-white hover:opacity-95 ${isStreaming ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit">
-                            <span>Надіслати</span>
+                        <button id="sendBtn" disabled={isStreaming} aria-disabled={isStreaming ? 'true' : 'false'} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${isStreaming ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit" aria-label="Надіслати">
+                            <Send size={18} />
                         </button>
                     </form>
                 </section>

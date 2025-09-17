@@ -2,10 +2,11 @@
 
 
 :root{
-	--bg:#ffffff; --surface:#f8fafc; --surface-solid:#f8fafc; --surfaceSolid: var(--surface-solid); --ink:#0b132b; --muted:#64748b; --border:#e5e7eb;
+    --bg:#ffffff; --surface:#f8fafc; --surface-solid:#f8fafc; --surfaceSolid: var(--surface-solid); --ink:#0b132b; --muted:#64748b; --border:#e5e7eb;
 	--primary:#0b132b; --accent:#c5a46d; --accent-ink:#0b132b;
 	--grad-start:#4f46e5; --grad-end:#06b6d4; --gold:#c5a46d; --rose:#ef4444; --emerald:#10b981;
     --ring: rgba(30,58,138,.25); --chat-bubble-user-bg:rgb(242, 242, 242);
+    --header-h:64px;
     /* Сообщаем браузеру и библиотекам (Radix) о текущей теме */
     color-scheme: light;
 }
@@ -226,4 +227,11 @@ header[data-menu-open="true"] .mobile-nav{display:block}
 @media (max-width: 768px){
   .thread-item{grid-template-columns:1fr auto auto}
   .chat-bubble{max-width:90%}
+  /* Мобильная версия чата без рамок и скруглений */
+  #chatBody{border:none !important; border-radius:0 !important}
+}
+
+/* Высота страницы чата: 100vh минус высота хэдера, без скролла body */
+.chat-fullscreen{
+  height:calc(100dvh - var(--header-h, 56px));
 }
