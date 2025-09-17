@@ -2,7 +2,7 @@
 
 const DEFAULT_BASE_URL = 'https://legal-ai-api-35dc5cd4fd8d.herokuapp.com';
 
-function getBaseUrl() {
+export function getBaseUrl() {
     try {
         const envUrl = import.meta?.env?.VITE_API_URL;
         if (envUrl && String(envUrl).trim()) return String(envUrl).trim();
@@ -149,4 +149,25 @@ export const AuthAPI = {
     }
 };
 
+// Chat endpoints
+export const ChatAPI = {
+    async getThreads() {
+        return apiRequest('/threads', { method: 'GET' });
+    },
+    async getThreadMessages(threadId) {
+        const query = `?thread_id=${encodeURIComponent(threadId)}`;
+        return apiRequest(`/thread${query}`, { method: 'GET' });
+    },
+    async deleteThread(threadId) {
+        const query = `?thread_id=${encodeURIComponent(threadId)}`;
+        return apiRequest(`/thread${query}`, { method: 'DELETE' });
+    },
+    async renameThread(threadId, chatName) {
+        const query = `?thread_id=${encodeURIComponent(threadId)}`;
+        return apiRequest(`/thread${query}`, { method: 'PATCH', body: { chat_name: chatName } });
+    },
+    async sendMessage(threadId, message) {
+        return apiRequest('/chat/message', { method: 'POST', body: { thread_id: threadId, message } });
+    },
+};
 

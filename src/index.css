@@ -203,3 +203,27 @@ header[data-menu-open="true"] .mobile-nav{display:block}
 	header .mobile-nav{display:none !important}
 }
 .logo-colors, .logo-colors svg, .logo-colors svg path{color:var(--accent);fill:var(--accent);stroke:var(--accent)}
+
+/* Chat bubbles */
+.chat-bubble{max-width:85%; padding:10px 14px; border-radius:18px; font-size:14px; line-height:1.5; word-break:break-word; box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.chat-bubble--user{background:color-mix(in oklab, var(--accent) 94%, #000 0%); color:#fff; border-top-right-radius:6px}
+.chat-bubble--ai{background:var(--surface); color:var(--ink); border:1px solid var(--border); border-top-left-radius:6px}
+
+/* Tool call inline loader */
+.tool-call-ui{margin-top:6px; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted)}
+.tool-call-spinner{display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color: var(--muted); border-radius:999px; animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Thread list items with icons staying within row */
+.thread-item{display:flex; max-width:100%; align-items:center; justify-content:space-between; gap:6px}
+.thread-item__title{display:block; flex:1; max-width:100%; text-overflow:ellipsis; white-space:nowrap; overflow:hidden; border-radius:8px; padding:6px 8px; text-align:left}
+.thread-item__icon, .thread-item__delete-icon{display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:6px; color:#9CA3AF; background:transparent; border:1px solid transparent}
+.thread-item__icon:hover{color:#4B5563; background:var(--surface); border-color:var(--border)}
+.thread-item__delete-icon:hover{color:red; background:var(--surface); border-color:var(--border)}
+.thread-button-group{display:flex; align-items:center; gap:6px}
+
+
+@media (max-width: 768px){
+  .thread-item{grid-template-columns:1fr auto auto}
+  .chat-bubble{max-width:90%}
+}
