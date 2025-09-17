@@ -1,4 +1,4 @@
-import { Header } from '../pages/landing/components.jsx'
+import { Header, Footer } from '../pages/landing/components.jsx'
 import { useLocation } from 'react-router-dom'
 
 export default function Layout({ children }) {
@@ -10,6 +10,7 @@ export default function Layout({ children }) {
             <main className={isChat ? 'p-0' : 'mx-auto max-w-7xl px-6 py-6'} style={isChat ? { height: 'calc(100dvh - var(--header-h, 64px))', minHeight: 'calc(100dvh - var(--header-h, 64px))', overflow: 'hidden' } : undefined}>
                 {children}
             </main>
+            {!isChat && <Footer />}
         </div>
     )
 }

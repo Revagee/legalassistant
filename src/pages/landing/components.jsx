@@ -199,14 +199,24 @@ export function Header() {
 export function Footer() {
     return (
         <footer className="mt-20 border-t border-gray-200">
-            <div className="mx-auto max-w-7xl px-6 py-10 grid gap-3 sm:flex sm:items-center sm:justify-between">
-                <div className="text-sm text-gray-600">© {new Date().getFullYear()} Юридичний помічник</div>
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                    <a href="mailto:legal@example.com" className="text-gray-600 hover:text-gray-800 transition-colors">legal@example.com</a>
-                    <span className="hidden sm:inline text-gray-300">|</span>
-                    <a href="#privacy" className="text-gray-600 hover:text-gray-800 transition-colors">Політика конфіденційності</a>
-                    <span className="hidden sm:inline text-gray-300">|</span>
-                    <a href="#contacts" className="text-gray-600 hover:text-gray-800 transition-colors">Контакти</a>
+            <div className="mx-auto max-w-7xl px-6 py-10">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-sm text-gray-600 text-center sm:text-left">
+                        © {new Date().getFullYear()} Юридичний помічник
+                    </div>
+                    <div className="flex flex-col gap-2 text-sm text-center sm:flex-row sm:items-center sm:gap-4">
+                        <a href="mailto:legal@example.com" className="text-gray-600 hover:text-gray-800 transition-colors">
+                            legal@example.com
+                        </a>
+                        <span className="hidden sm:inline text-gray-300">|</span>
+                        <a href="/privacy" className="text-gray-600 hover:text-gray-800 transition-colors">
+                            Політика конфіденційності
+                        </a>
+                        <span className="hidden sm:inline text-gray-300">|</span>
+                        <a href="/terms" className="text-gray-600 hover:text-gray-800 transition-colors">
+                            Умови користування
+                        </a>
+                    </div>
                 </div>
             </div>
         </footer>

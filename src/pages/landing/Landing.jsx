@@ -162,7 +162,6 @@ export default function Landing({ heroVariant = getHeroVariantFromQuery() }) {
                     </div>
                 </section>
             </main>
-            <Footer />
         </div>
     )
 }
