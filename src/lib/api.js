@@ -139,8 +139,13 @@ export const AuthAPI = {
         return apiRequest(`/auth/verify-email${query}`, { method: 'GET' })
     },
     async refresh() {
-        const refreshToken = getStoredRefreshToken()
-        return apiRequest('/auth/refresh', { method: 'POST', body: { refresh_token: refreshToken } })
+        // Prefer GET /refresh (as required), fallback to legacy /auth/refresh POST
+        try {
+            return await apiRequest('/refresh', { method: 'GET' })
+        } catch {
+            const refreshToken = getStoredRefreshToken()
+            return apiRequest('/auth/refresh', { method: 'POST', body: { refresh_token: refreshToken } })
+        }
     },
     async logout() {
         try { await apiRequest('/auth/logout', { method: 'POST' }); } catch { /* ignore */ }

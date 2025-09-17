@@ -43,9 +43,9 @@ export function AuthProvider({ children }) {
         loadMe()
     }, [loadMe])
 
-    // Auto refresh every 24 hours while page is open
+    // Auto refresh every 1 hour while page is open
     useEffect(() => {
-        const DAY_MS = 24 * 60 * 60 * 1000
+        const HOUR_MS = 60 * 60 * 1000
         let intervalId = null
         async function tick() {
             try {
@@ -64,7 +64,9 @@ export function AuthProvider({ children }) {
         }
         // start timer only if there is a token
         if (getStoredToken()) {
-            intervalId = setInterval(tick, DAY_MS)
+            intervalId = setInterval(tick, HOUR_MS)
+            // also run once on mount to extend session if close to expiry
+            tick().catch(() => { })
         }
         return () => { if (intervalId) clearInterval(intervalId) }
     }, [loadMe])
