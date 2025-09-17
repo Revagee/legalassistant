@@ -5,14 +5,14 @@
 	--bg:#ffffff; --surface:#f8fafc; --surface-solid:#f8fafc; --surfaceSolid: var(--surface-solid); --ink:#0b132b; --muted:#64748b; --border:#e5e7eb;
 	--primary:#0b132b; --accent:#c5a46d; --accent-ink:#0b132b;
 	--grad-start:#4f46e5; --grad-end:#06b6d4; --gold:#c5a46d; --rose:#ef4444; --emerald:#10b981;
-    --ring: rgba(30,58,138,.25);
+    --ring: rgba(30,58,138,.25); --chat-bubble-user-bg:rgb(242, 242, 242);
     /* Сообщаем браузеру и библиотекам (Radix) о текущей теме */
     color-scheme: light;
 }
  [data-theme="dark"]{
 	--bg:#0b0f14; --surface:rgba(15,22,34,0.6); --surface-solid:#0f1622; --surfaceSolid: var(--surface-solid); --ink:#e6edf7; --muted:#a5b0c2; --border:#1f2937;
 	--primary:#e6edf7; --accent:#93c5fd; --accent-ink:#0b132b;
-    --ring: rgba(147,197,253,.25);
+    --ring: rgba(147,197,253,.25); --chat-bubble-user-bg:rgb(26, 33, 46);
     color-scheme: dark;
  }
 *{box-sizing:border-box}
@@ -206,8 +206,8 @@ header[data-menu-open="true"] .mobile-nav{display:block}
 
 /* Chat bubbles */
 .chat-bubble{max-width:85%; padding:10px 14px; border-radius:18px; font-size:14px; line-height:1.5; word-break:break-word; box-shadow:0 1px 0 rgba(0,0,0,.03)}
-.chat-bubble--user{background:color-mix(in oklab, var(--accent) 94%, #000 0%); color:#fff; border-top-right-radius:6px}
-.chat-bubble--ai{background:var(--surface); color:var(--ink); border:1px solid var(--border); border-top-left-radius:6px}
+.chat-bubble--user{background-color:var(--chat-bubble-user-bg); color:var(--ink); border-top-right-radius:6px}
+.chat-bubble--ai{box-shadow:none}
 
 /* Tool call inline loader */
 .tool-call-ui{margin-top:6px; display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted)}

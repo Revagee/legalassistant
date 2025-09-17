@@ -243,7 +243,7 @@ export default function AIChat() {
     return (
         <div className="px-6 sm:px-8 py-6 sm:py-8 h-[100dvh]">
             {/* Mobile drawer for threads */}
-            <div className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform bg-white shadow-xl transition-transform duration-200 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} md:hidden`}>
+            <div className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform shadow-xl transition-transform duration-200 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} md:hidden`} style={{ background: 'var(--surface-solid)' }}>
                 <div className="border-b p-4 flex items-center justify-between">
                     <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Останні запити</div>
                     <button onClick={() => setDrawerOpen(false)} className="text-xs font-medium hover:underline" style={{ color: 'var(--accent)' }}>Закрити</button>
