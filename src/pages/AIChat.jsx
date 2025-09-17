@@ -34,6 +34,10 @@ export default function AIChat() {
     }
 
     async function fetchThreads() {
+        if (!isAuthenticated) {
+            setThreads([])
+            return []
+        }
         const list = await ChatAPI.getThreads()
         const sorted = Array.isArray(list) ? [...list].sort((a, b) => {
             const ta = Date.parse(threadTimestamp(a)) || 0
@@ -45,6 +49,10 @@ export default function AIChat() {
     }
 
     async function fetchThreadMessages(threadId) {
+        if (!isAuthenticated || !threadId) {
+            setMessages([])
+            return []
+        }
         const data = await ChatAPI.getThreadMessages(threadId)
         // Expecting array of { type: 'human'|'ai', content: string }
         const normalized = Array.isArray(data) ? data.map((m) => ({
@@ -64,7 +72,7 @@ export default function AIChat() {
 
     function openStream(threadId) {
         closeStream()
-        if (!threadId) return
+        if (!threadId || !isAuthenticated) return
         const base = getBaseUrl()
         const token = getStoredToken()
         const url = new URL((base.startsWith('http') ? base : window.location.origin + base) + '/chat/stream')
@@ -114,7 +122,7 @@ export default function AIChat() {
     }
 
     async function selectThread(threadId) {
-        if (!threadId) return
+        if (!threadId || !isAuthenticated) return
         setActiveId(threadId)
         setMessages([])
         closeStream()
@@ -123,6 +131,7 @@ export default function AIChat() {
     }
 
     async function handleDeleteThread(threadId) {
+        if (!isAuthenticated) return
         try { await ChatAPI.deleteThread(threadId) } catch { /* ignore */ }
         setThreads((prev) => prev.filter((t) => t.id !== threadId))
         if (activeId === threadId) {
@@ -138,6 +147,7 @@ export default function AIChat() {
     }
 
     async function handleRenameThread(threadId, currentName) {
+        if (!isAuthenticated) return
         setRenameTarget({ id: threadId, name: currentName || '' })
         setRenameName(currentName || '')
         setRenameOpen(true)
@@ -145,6 +155,7 @@ export default function AIChat() {
 
     async function submitRename(e) {
         if (e && typeof e.preventDefault === 'function') e.preventDefault()
+        if (!isAuthenticated) { setRenameOpen(false); return }
         const id = renameTarget?.id
         const name = (renameName || '').trim()
         if (!id || !name) { setRenameOpen(false); return }
@@ -177,6 +188,7 @@ export default function AIChat() {
 
     async function handleSubmit(e) {
         e.preventDefault()
+        if (!isAuthenticated) return
         const el = inputRef.current
         if (!el) return
         const value = (el.value || '').trim()
@@ -227,9 +239,17 @@ export default function AIChat() {
         let mounted = true
             ; (async function init() {
                 try {
-                    const list = await fetchThreads()
-                    if (mounted && list && list.length) {
-                        await selectThread(list[0].id)
+                    if (!loading && isAuthenticated) {
+                        const list = await fetchThreads()
+                        if (mounted && list && list.length) {
+                            await selectThread(list[0].id)
+                        }
+                    } else {
+                        // если не авторизован — очищаем локальное состояние и закрываем стримы
+                        closeStream()
+                        setThreads([])
+                        setMessages([])
+                        setActiveId(null)
                     }
                 } catch { /* ignore */ }
             })()
@@ -238,13 +258,10 @@ export default function AIChat() {
             closeStream()
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [isAuthenticated, loading])
 
     return (
-        <div className="h-full" style={{
-            display: 'grid',
-            gridTemplateRows: 'auto 1fr',
-        }}>
+        <div className="h-full min-h-0 flex flex-col">
             {/* Mobile drawer for threads */}
             <div className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform shadow-xl transition-transform duration-200 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'} md:hidden`} style={{ background: 'var(--surface-solid)' }}>
                 <div className="border-b p-4 flex items-center justify-between">
@@ -311,7 +328,7 @@ export default function AIChat() {
                     </div>
                 </aside>
 
-                <section className="flex h-full min-h-0 flex-1 flex-col">
+                <section className="relative flex h-full min-h-0 flex-1 flex-col">
                     <div className="mb-2 flex items-center justify-between px-4 pt-2">
                         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight pt-2" style={{ color: 'var(--accent)' }}>Юридичний ШІ</h1>
                         <button type="button" className="md:hidden inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm" onClick={() => setDrawerOpen(true)} aria-label="Відкрити меню тредів">
@@ -321,7 +338,7 @@ export default function AIChat() {
                             <span className="text-[13px]" style={{ color: 'var(--accent)' }}>Чати</span>
                         </button>
                     </div>
-                    <div ref={bodyRef} id="chatBody" className="mt-2 flex-1 overflow-y-auto bg-white p-2 sm:p-6 space-y-4" style={{ border: 'none', borderRadius: 0 }}>
+                    <div ref={bodyRef} id="chatBody" className="mt-2 flex-1 overflow-y-auto bg-white p-2 sm:p-6 pb-28 space-y-4" style={{ border: 'none', borderRadius: 0 }}>
                         {messages && messages.length > 0 ? (
                             messages.map((m, idx) => (
                                 <div key={idx}>
@@ -350,9 +367,9 @@ export default function AIChat() {
                             </div>
                         )}
                     </div>
-                    <form id="chatForm" onSubmit={handleSubmit} className="mt-4 flex items-end gap-3 px-4 pb-4">
+                    <form id="chatForm" onSubmit={handleSubmit} className="absolute bottom-0 left-0 right-0 flex items-end gap-3 px-4 py-3 sm:py-4 border-t" style={{ background: 'var(--surface-solid)', borderColor: 'var(--border)' }}>
                         <textarea ref={inputRef} onInput={autoGrowTextarea} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }} id="chatInput" name="q" rows={1} placeholder="Опишіть питання… (Shift+Enter — новий рядок)" className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" style={{ overflowY: 'hidden' }}></textarea>
-                        <button id="sendBtn" disabled={isStreaming} aria-disabled={isStreaming ? 'true' : 'false'} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${isStreaming ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit" aria-label="Надіслати">
+                        <button id="sendBtn" disabled={!isAuthenticated || isStreaming} aria-disabled={!isAuthenticated || isStreaming ? 'true' : 'false'} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${(isStreaming || !isAuthenticated) ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit" aria-label="Надіслати">
                             <Send size={18} />
                         </button>
                     </form>
