@@ -31,9 +31,16 @@ import TrainerQuiz from './pages/trainer/Quiz.jsx'
 import TrainerResult from './pages/trainer/Result.jsx'
 import SimpleQuizDemo from './pages/trainer/SimpleQuizDemo.jsx'
 import Subscription from './pages/Subscription.jsx'
+import SubscriptionPayment from './pages/SubscriptionPayment.jsx'
+import SubscriptionSuccess from './pages/SubscriptionSuccess.jsx'
 import Privacy from './pages/Privacy.jsx'
 import Terms from './pages/Terms.jsx'
 import Title from './components/Title.jsx'
+import Contacts from './pages/Contacts.jsx'
+import Refunds from './pages/Refunds.jsx'
+import Delivery from './pages/Delivery.jsx'
+import Merchant from './pages/Merchant.jsx'
+import Pricing from './pages/Pricing.jsx'
 
 export default function App() {
   return (
@@ -69,8 +76,15 @@ export default function App() {
           <Route path="/trainer/simple-demo" element={<><Title title="Демо Quiz" /><SimpleQuizDemo /></>} />
           <Route path="/documents" element={<><Title title="Документи" /><Documents /></>} />
           <Route path="/subscription" element={<><Title title="Підписка" /><Subscription /></>} />
+          <Route path="/subscription/payment" element={<><Title title="Оплата підписки" /><SubscriptionPayment /></>} />
+          <Route path="/subscription/success" element={<><Title title="Оплата успішна" /><SubscriptionSuccess /></>} />
           <Route path="/privacy" element={<><Title title="Політика конфіденційності" /><Privacy /></>} />
           <Route path="/terms" element={<><Title title="Умови користування" /><Terms /></>} />
+          <Route path="/contacts" element={<><Title title="Контакти" /><Contacts /></>} />
+          <Route path="/refunds" element={<><Title title="Повернення коштів" /><Refunds /></>} />
+          <Route path="/delivery" element={<><Title title="Доставка та отримання" /><Delivery /></>} />
+          <Route path="/merchant" element={<><Title title="Про власника" /><Merchant /></>} />
+          <Route path="/pricing" element={<><Title title="Ціни" /><Pricing /></>} />
         </Routes>
       </Layout>
     </BrowserRouter>

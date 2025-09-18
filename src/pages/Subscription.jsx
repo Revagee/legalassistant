@@ -175,11 +175,10 @@ export default function Subscription() {
     const isFreePlan = !hasSubscription
 
     const onSelectMonthly = () => {
-        // Здесь может быть переход на форму/провайдера оплаты
-        alert('Місячна підписка: перехід до оплати')
+        window.location.href = '/subscription/payment?type=monthly'
     }
     const onSelectYearly = () => {
-        alert('Річна підписка: перехід до оплати')
+        window.location.href = '/subscription/payment?type=yearly'
     }
 
     return (

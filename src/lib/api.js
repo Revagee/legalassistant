@@ -176,3 +176,10 @@ export const ChatAPI = {
     },
 };
 
+// Payment endpoints
+export const PaymentAPI = {
+    async createSubscription(subscriptionData) {
+        return apiRequest('/payments/subscription/create', { method: 'POST', body: subscriptionData });
+    },
+};
+

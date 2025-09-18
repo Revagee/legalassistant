@@ -1,3 +1,5 @@
+import { merchant } from '../lib/merchant.js'
+
 export default function Terms() {
     return (
         <div className="mx-auto max-w-3xl">
@@ -44,7 +46,7 @@ export default function Terms() {
                 </section>
                 <section>
                     <h2 className="text-lg font-semibold">8. Контакти</h2>
-                    <p className="mt-2 text-sm">З юридичних питань: <a href="mailto:legal@example.com" className="underline">legal@example.com</a>.</p>
+                    <p className="mt-2 text-sm">З юридичних питань: <a href={`mailto:${merchant.email}`} className="underline">{merchant.email}</a>.</p>
                 </section>
             </div>
         </div>

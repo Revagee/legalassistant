@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { assetPath } from './utils.js'
 import { Sun, Moon } from 'lucide-react'
 import { useAuth } from '../../lib/authContext.jsx'
+import { merchant } from '../../lib/merchant.js'
 import Logo from '../../assets/logo.jsx'
 
 export function PrimaryButton({ children, onClick }) {
@@ -200,22 +201,30 @@ export function Footer() {
     return (
         <footer className="mt-20 border-t border-gray-200">
             <div className="mx-auto max-w-7xl px-6 py-10">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-6">
                     <div className="text-sm text-gray-600 text-center sm:text-left">
-                        © {new Date().getFullYear()} Юридичний помічник
+                        <div className="font-semibold text-gray-800">{merchant.shopName}</div>
+                        <div className="mt-1">© {new Date().getFullYear()}</div>
+                        <div className="mt-2"><a href={`mailto:${merchant.email}`} className="hover:text-gray-800 transition-colors">{merchant.email}</a></div>
+                        <div className="mt-1"><a href={`tel:${merchant.phone.replace(/\s/g, '')}`} className="hover:text-gray-800 transition-colors">{merchant.phone}</a></div>
                     </div>
-                    <div className="flex flex-col gap-2 text-sm text-center sm:flex-row sm:items-center sm:gap-4">
-                        <a href="mailto:legal@example.com" className="text-gray-600 hover:text-gray-800 transition-colors">
-                            legal@example.com
-                        </a>
-                        <span className="hidden sm:inline text-gray-300">|</span>
-                        <a href="/privacy" className="text-gray-600 hover:text-gray-800 transition-colors">
-                            Політика конфіденційності
-                        </a>
-                        <span className="hidden sm:inline text-gray-300">|</span>
-                        <a href="/terms" className="text-gray-600 hover:text-gray-800 transition-colors">
-                            Умови користування
-                        </a>
+                    <div className="text-sm text-gray-600 text-center sm:text-left">
+                        <div className="font-semibold text-gray-800">Інформація</div>
+                        <ul className="mt-2 space-y-1">
+                            <li><a href="/privacy" className="hover:text-gray-800 transition-colors">Політика конфіденційності</a></li>
+                            <li><a href="/terms" className="hover:text-gray-800 transition-colors">Умови користування</a></li>
+                            <li><a href="/pricing" className="hover:text-gray-800 transition-colors">Ціни</a></li>
+                            <li><a href="/refunds" className="hover:text-gray-800 transition-colors">Повернення коштів</a></li>
+                            <li><a href="/delivery" className="hover:text-gray-800 transition-colors">Доставка та отримання</a></li>
+                        </ul>
+                    </div>
+                    <div className="text-sm text-gray-600 text-center sm:text-left">
+                        <div className="font-semibold text-gray-800">Компанія</div>
+                        <ul className="mt-2 space-y-1">
+                            <li><a href="/contacts" className="hover:text-gray-800 transition-colors">Контакти</a></li>
+                            <li><a href="/merchant" className="hover:text-gray-800 transition-colors">Про власника</a></li>
+                            <li><span className="text-gray-400">Адреса: {merchant.address}</span></li>
+                        </ul>
                     </div>
                 </div>
             </div>
