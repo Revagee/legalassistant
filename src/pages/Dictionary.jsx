@@ -52,7 +52,7 @@ export default function Dictionary({ q = '' }) {
         return `/ai?q=${encodeURIComponent(aq)}`
     }, [query])
 
-    const termList = useMemo(() => Object.keys(ALL_TERMS).sort(), [])
+    const termList = useMemo(() => Object.keys(ALL_TERMS).sort((a, b) => a.localeCompare(b, ['uk', 'ru'], { sensitivity: 'base' })), [])
 
     return (
         <div className="mx-auto max-w-5xl px-6 py-8">

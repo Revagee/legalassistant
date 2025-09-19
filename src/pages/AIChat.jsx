@@ -4,7 +4,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useAuth } from '../lib/authContext.jsx'
 import { ChatAPI, getBaseUrl } from '../lib/api.js'
-import { Trash2, Pencil, Send } from 'lucide-react'
+import { Trash2, Pencil, Send, ThumbsUp, ThumbsDown, Copy, Check, Share2, FileText, Mail, MessageCircle, MessageSquare } from 'lucide-react'
 
 export default function AIChat() {
     const bodyRef = useRef(null)
@@ -19,6 +19,10 @@ export default function AIChat() {
     const [messages, setMessages] = useState([])
     const [isStreaming, setIsStreaming] = useState(false)
     const [toolCallText, setToolCallText] = useState('')
+    const [copiedIdx, setCopiedIdx] = useState(null)
+    const [shareOpen, setShareOpen] = useState(false)
+    const [shareContent, setShareContent] = useState('')
+    const [threadReaction, setThreadReaction] = useState(null) // 1 like, 0 dislike, null none
 
     // Rename modal state
     const [renameOpen, setRenameOpen] = useState(false)
@@ -157,6 +161,27 @@ export default function AIChat() {
         } else {
             fetchThreads().catch(() => { })
         }
+    }
+
+    async function handleThreadReaction(reactionType) {
+        if (!isAuthenticated || !activeId) return
+        try {
+            await ChatAPI.reactThread(activeId, reactionType)
+            setThreadReaction(Number(reactionType))
+        } catch { /* ignore */ }
+    }
+
+    async function copyMessage(text, index) {
+        try {
+            await navigator.clipboard.writeText(String(text || ''))
+            setCopiedIdx(index)
+            setTimeout(() => setCopiedIdx(null), 2000)
+        } catch { /* ignore */ }
+    }
+
+    function openShare(text) {
+        setShareContent(String(text || ''))
+        setShareOpen(true)
     }
 
     async function handleRenameThread(threadId, currentName) {
@@ -363,7 +388,19 @@ export default function AIChat() {
 
                 <section className="relative flex h-full min-h-0 flex-1 flex-col">
                     <div className="mb-2 flex items-center justify-between px-4 pt-2">
-                        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight pt-2" style={{ color: 'var(--accent)' }}>Юридичний ШІ</h1>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight pt-2" style={{ color: 'var(--accent)' }}>Юридичний ШІ</h1>
+                            {isAuthenticated && activeId ? (
+                                <div className="flex items-center gap-2 ml-2">
+                                    <button type="button" aria-label="Like thread" className={`inline-flex items-center justify-center h-8 w-8 rounded-full border ${threadReaction === 1 ? 'bg-green-50 border-green-300' : 'border-gray-200'}`} onClick={() => handleThreadReaction(1)}>
+                                        <ThumbsUp size={16} color={threadReaction === 1 ? '#16a34a' : 'currentColor'} />
+                                    </button>
+                                    <button type="button" aria-label="Dislike thread" className={`inline-flex items-center justify-center h-8 w-8 rounded-full border ${threadReaction === 0 ? 'bg-red-50 border-red-300' : 'border-gray-200'}`} onClick={() => handleThreadReaction(0)}>
+                                        <ThumbsDown size={16} color={threadReaction === 0 ? '#dc2626' : 'currentColor'} />
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
                         <button type="button" className="md:hidden inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm" onClick={() => setDrawerOpen(true)} aria-label="Відкрити меню тредів">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5" style={{ color: 'var(--accent)' }}>
                                 <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -389,6 +426,16 @@ export default function AIChat() {
                                         <div className="flex justify-start">
                                             <div className="chat-bubble chat-bubble--ai">
                                                 <div className="md-answer whitespace-pre-wrap" data-md="1">{m.content}</div>
+                                                <div className="mt-2 flex items-center gap-2 opacity-80">
+                                                    <button type="button" title="Копіювати" className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50" onClick={() => copyMessage(m.content, idx)}>
+                                                        {copiedIdx === idx ? <Check size={14} /> : <Copy size={14} />}
+                                                        <span>{copiedIdx === idx ? 'Скопійовано' : 'Копіювати'}</span>
+                                                    </button>
+                                                    <button type="button" title="Поділитися" className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50" onClick={() => openShare(m.content)}>
+                                                        <Share2 size={14} />
+                                                        <span>Поділитися</span>
+                                                    </button>
+                                                </div>
                                                 {idx === messages.length - 1 && toolCallText ? (
                                                     <div className="tool-call-ui">
                                                         <span className="tool-call-spinner" />
@@ -440,6 +487,58 @@ export default function AIChat() {
                                 <button type="submit" disabled={renameBusy || !renameName.trim()} className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm text-white" style={{ background: 'var(--accent)', opacity: (renameBusy || !renameName.trim()) ? .6 : 1 }}>Зберегти</button>
                             </div>
                         </form>
+                    </div>, document.body
+                )}
+
+                {/* Share modal */}
+                {shareOpen && createPortal(
+                    <div className="fixed inset-0 flex items-center justify-center" aria-modal="true" role="dialog" style={{ zIndex: 1000 }}>
+                        <div className="absolute inset-0 bg-black/40" onClick={() => setShareOpen(false)} />
+                        <div className="relative z-10 w-[92%] sm:w-[520px] rounded-2xl border p-5 shadow-sm" style={{ background: 'var(--surface-solid)', color: 'var(--ink)', borderColor: 'var(--border)' }}>
+                            <div className="text-lg font-semibold mb-2" style={{ color: 'var(--accent)' }}>Поділитися відповіддю</div>
+                            <div className="text-xs mb-3" style={{ color: '#6B7280' }}>Оберіть дію для поточного повідомлення.</div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <a href={`mailto:?subject=${encodeURIComponent('Відповідь ШІ')}&body=${encodeURIComponent(shareContent)}`} className="inline-flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-gray-50">
+                                    <Mail size={16} /> Надіслати e-mail
+                                </a>
+                                <button type="button" className="inline-flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-gray-50" onClick={async () => {
+                                    try {
+                                        const file = await (await import('../lib/docxGen.js')).generateDocxFile({ title: 'AI Answer', bodyText: shareContent, fileName: 'answer.docx' })
+                                        const url = URL.createObjectURL(file)
+                                        const a = document.createElement('a')
+                                        a.href = url
+                                        a.download = file.name
+                                        document.body.appendChild(a)
+                                        a.click()
+                                        a.remove()
+                                        URL.revokeObjectURL(url)
+                                    } catch { /* ignore */ }
+                                }}>
+                                    <FileText size={16} /> Експорт у Word
+                                </button>
+                                <a href={`https://t.me/share/url?url=${encodeURIComponent('')}&text=${encodeURIComponent(shareContent)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-gray-50">
+                                    <MessageCircle size={16} /> Поділитися у Telegram
+                                </a>
+                                <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent(shareContent)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-gray-50">
+                                    <MessageCircle size={16} /> Поділитися у WhatsApp
+                                </a>
+                                <button type="button" className="inline-flex items-center gap-2 px-3 py-2 rounded-md border hover:bg-gray-50" onClick={async () => {
+                                    try {
+                                        if (navigator.share) {
+                                            await navigator.share({ text: shareContent })
+                                        } else {
+                                            await navigator.clipboard.writeText(shareContent)
+                                        }
+                                        setShareOpen(false)
+                                    } catch { /* ignore */ }
+                                }}>
+                                    <MessageSquare size={16} /> Поділитися через системне меню
+                                </button>
+                            </div>
+                            <div className="mt-4 flex items-center justify-end gap-2">
+                                <button type="button" className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm border" style={{ background: 'transparent', color: 'var(--ink)', borderColor: 'var(--border)' }} onClick={() => setShareOpen(false)}>Закрити</button>
+                            </div>
+                        </div>
                     </div>, document.body
                 )}
             </div>

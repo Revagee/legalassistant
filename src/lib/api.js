@@ -174,6 +174,10 @@ export const ChatAPI = {
     async sendMessage(threadId, message) {
         return apiRequest('/chat/message', { method: 'POST', body: { thread_id: threadId, message } });
     },
+    async reactThread(threadId, reactionType) {
+        // reactionType: 0 - dislike, 1 - like
+        return apiRequest('/chat/reaction', { method: 'POST', body: { thread_id: threadId, reaction_type: Number(reactionType) } })
+    },
 };
 
 // Payment endpoints
