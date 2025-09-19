@@ -205,6 +205,15 @@ header[data-menu-open="true"] .mobile-nav{display:block}
 }
 .logo-colors, .logo-colors svg, .logo-colors svg path{color:var(--accent);fill:var(--accent);stroke:var(--accent)}
 
+/* Visible text selection highlight for both light and dark themes */
+::selection{background:#bfdbfe;color:#111827;text-shadow:none}
+::-moz-selection{background:#bfdbfe;color:#111827;text-shadow:none}
+/* Ensure links and form controls have the same visible highlight in light theme */
+a::selection, a::-moz-selection{background:#bfdbfe;color:#111827}
+input::selection, textarea::selection{background:#bfdbfe;color:#111827}
+[data-theme="dark"] ::selection{background:rgba(96,165,250,.35);color:#f9fafb;text-shadow:none}
+[data-theme="dark"] ::-moz-selection{background:rgba(96,165,250,.35);color:#f9fafb;text-shadow:none}
+
 /* Text selection override - allow text selection everywhere except UI controls */
 * {
   -webkit-user-select: text !important;
