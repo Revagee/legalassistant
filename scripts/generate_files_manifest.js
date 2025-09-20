@@ -23,7 +23,7 @@ const CATEGORY_LABELS = {
  */
 function humanizeName(filename) {
     const base = filename.replace(/\.(docx?|rtf)$/i, '')
-    const spaced = base.replace(/[\._]+/g, ' ').replace(/\s+/g, ' ').trim()
+    const spaced = base.replace(/[._]+/g, ' ').replace(/\s+/g, ' ').trim()
     // Спец-обработка общих аббревиатур
     const fixed = spaced
         .replace(/\bpozov\b/ig, 'Позов')
@@ -69,7 +69,7 @@ function collectFiles() {
 function main() {
     if (!fs.existsSync(PUBLIC_FILES_DIR)) {
         console.error('Not found:', PUBLIC_FILES_DIR)
-        process.exit(1)
+        window.process.exit(1)
     }
     const manifest = collectFiles()
     fs.writeFileSync(OUTPUT_FILE, JSON.stringify(manifest, null, 2), 'utf8')

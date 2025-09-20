@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 
 const HTML_FILE = '/Users/alexanderrekachynskyi/Programming/lawbotFrontend/lawbot/public/codes/435-15.html';
 const OUTPUT_JSON = '/Users/alexanderrekachynskyi/Programming/lawbotFrontend/lawbot/public/codes/435-15.json';

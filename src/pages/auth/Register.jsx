@@ -24,7 +24,7 @@ export default function Register() {
         setError('')
         setLoading(true)
         try {
-            const res = await register(name, email, password)
+            await register(name, email, password)
             // После регистрации ведём на CheckEmail, email передаём через state
             navigate('/auth/check-email', { state: { email } })
         } catch (e) {
@@ -32,7 +32,7 @@ export default function Register() {
         } finally {
             setLoading(false)
         }
-        try { sessionStorage.setItem('last_forgot_email', form.email.value) } catch (_) { }
+        try { sessionStorage.setItem('last_forgot_email', form.email.value) } catch { /* ignore */ }
     }
 
     return (

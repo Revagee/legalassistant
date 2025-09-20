@@ -55,7 +55,7 @@ export default function DatabaseRead() {
                 if (target && typeof target.scrollIntoView === 'function') {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
-            } catch { }
+            } catch { /* ignore */ }
         }, 50)
         return () => clearTimeout(t)
     }, [html, article])

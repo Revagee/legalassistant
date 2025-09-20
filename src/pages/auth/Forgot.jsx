@@ -22,7 +22,7 @@ export default function Forgot() {
             const message = res?.message || 'Якщо email існує, інструкції надіслано'
             setInfo(message)
             if (res?.reset_link) setResetLink(res.reset_link)
-            try { sessionStorage.setItem('last_forgot_email', email) } catch (_) { }
+            try { sessionStorage.setItem('last_forgot_email', email) } catch { /* ignore */ }
             navigate('/auth/check-email', { state: { email } })
         } catch (e) {
             setError(e?.message || 'Не вдалося надіслати інструкції')

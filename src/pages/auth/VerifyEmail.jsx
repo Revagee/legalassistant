@@ -18,7 +18,7 @@ export default function VerifyEmail() {
         setLoading(true)
         setError('')
         AuthAPI.verifyEmail(token)
-            .then((res) => {
+            .then(() => {
                 // На любой успешный ответ переходим на страницу успеха
                 navigate('/auth/verify-success', { replace: true })
             })

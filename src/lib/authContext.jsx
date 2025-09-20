@@ -5,11 +5,11 @@ const AuthContext = createContext({
     isAuthenticated: false,
     user: null,
     loading: true,
-    login: async (_email, _password) => { },
-    register: async (_name, _email, _password) => { },
+    login: async () => { },
+    register: async () => { },
     logout: async () => { },
     refresh: async () => { },
-    updateUser: (_partial) => { },
+    updateUser: () => { },
 })
 
 export function AuthProvider({ children }) {
@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
             const me = data?.user || data || null
             setUser(me)
             return me
-        } catch (_) {
+        } catch {
             setStoredToken('')
             setStoredRefreshToken('')
             setUser(null)
@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
                 if (res?.refresh_token) setStoredRefreshToken(res.refresh_token)
                 // refresh profile optionally
                 await loadMe()
-            } catch (_) {
+            } catch {
                 // on refresh failure, clear session silently
                 setStoredToken('')
                 setStoredRefreshToken('')
@@ -86,7 +86,7 @@ export function AuthProvider({ children }) {
         // If backend auto-issued token, refresh the user; otherwise keep unauthenticated
         try {
             if (getStoredToken()) await loadMe()
-        } catch (_) { }
+        } catch { /* ignore */ }
         return data
     }, [loadMe])
 
@@ -124,7 +124,8 @@ export function AuthProvider({ children }) {
     )
 }
 
-export function useAuth() {
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuth = () => {
     return useContext(AuthContext)
 }
 

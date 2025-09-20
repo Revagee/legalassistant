@@ -10,7 +10,7 @@ export function readGenerated() {
 }
 
 export function saveGenerated(list) {
-    try { localStorage.setItem(KEY, JSON.stringify(list)) } catch { }
+    try { localStorage.setItem(KEY, JSON.stringify(list)) } catch { /* ignore */ }
 }
 
 export function addGenerated({ title, blobUrl, fileName }) {

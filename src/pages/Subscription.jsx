@@ -1,34 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuth } from '../lib/authContext.jsx'
 import { PaymentAPI } from '../lib/api.js'
 import { useNavigate } from 'react-router-dom'
 
-// Вспомогательные функции для работы с валютой и периодами
-function normalizePeriod(period) {
-    const p = String(period || '').toLowerCase()
-    if (p.startsWith('month')) return 'monthly'
-    if (p.startsWith('year') || p.startsWith('annual')) return 'yearly'
-    return p
-}
-
-function toUah(amount, currency, rate) {
-    const cur = String(currency || '').toUpperCase()
-    const n = Number(amount || 0)
-    if (!isFinite(n)) return 0
-    if (cur === 'UAH') return n
-    if (cur === 'USD') return n * rate
-    // неизвестная валюта — считаем как USD
-    return n * rate
-}
-
-function toUsd(amount, currency, rate) {
-    const cur = String(currency || '').toUpperCase()
-    const n = Number(amount || 0)
-    if (!isFinite(n)) return 0
-    if (cur === 'USD') return n
-    if (cur === 'UAH') return n / rate
-    return n / rate
-}
 
 function useUsdToUahRate() {
     const [rate, setRate] = useState(40) // запасной курс, если сеть недоступна
@@ -38,9 +12,9 @@ function useUsdToUahRate() {
     const { user } = useAuth()
     useEffect(() => {
         let cancelled = false
-        // if (user?.plan_id !== 0) {
-        //     navigate('/account')
-        // }
+        if (user?.plan_id !== 0) {
+            navigate('/account')
+        }
         async function fetchRate() {
             try {
                 // Пытаемся получить курс USD→UAH из публичного API
@@ -169,32 +143,9 @@ function PlanCard({ title, price, period, ribbon, ctaLabel, onSelect, features, 
 export default function Subscription() {
     const { user } = useAuth()
     const [plans, setPlans] = useState(null)
-    const { rate, loading } = useUsdToUahRate()
+    const { loading } = useUsdToUahRate()
 
-    const monthlyPlan = useMemo(() => (plans || []).find(p => normalizePeriod(p?.billing_period) === 'monthly'), [plans])
-    const yearlyPlan = useMemo(() => (plans || []).find(p => normalizePeriod(p?.billing_period) === 'yearly'), [plans])
 
-    const prices = useMemo(() => {
-        const monthlyUah = monthlyPlan ? toUah(monthlyPlan.amount, monthlyPlan.currency, rate) : 10 * rate
-        const yearlyUah = yearlyPlan ? toUah(yearlyPlan.amount, yearlyPlan.currency, rate) : 100 * rate
-        return {
-            monthlyUah: Math.round(monthlyUah),
-            yearlyUah: Math.round(yearlyUah),
-        }
-    }, [monthlyPlan, yearlyPlan, rate])
-
-    const yearlySavingsPct = useMemo(() => {
-        const monthlyUsd = monthlyPlan ? toUsd(monthlyPlan.amount, monthlyPlan.currency, rate) : 10
-        const yearlyUsd = yearlyPlan ? toUsd(yearlyPlan.amount, yearlyPlan.currency, rate) : 100
-        if (!monthlyUsd || !isFinite(monthlyUsd) || !yearlyUsd || !isFinite(yearlyUsd)) return 0
-        const monthlyTotalUsd = 12 * monthlyUsd
-        const pct = 1 - (yearlyUsd / monthlyTotalUsd)
-        return Math.max(0, Math.round(pct * 100))
-    }, [monthlyPlan, yearlyPlan, rate])
-
-    // Определяем, есть ли у пользователя активная подписка
-    const hasSubscription = user?.subscription === true
-    const isFreePlan = !hasSubscription
 
     // Загрузим планы и определим активный план по user.plan_id
     useEffect(() => {
@@ -210,13 +161,6 @@ export default function Subscription() {
     }, [])
 
     const activePlanId = Number(user?.plan_id || 0)
-
-    const onSelectMonthly = () => {
-        window.location.href = '/subscription/payment?type=monthly'
-    }
-    const onSelectYearly = () => {
-        window.location.href = '/subscription/payment?type=yearly'
-    }
 
     return (
         <div className="mx-auto max-w-6xl">
