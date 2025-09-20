@@ -1,13 +1,32 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PaymentAPI } from '../lib/api.js'
 import { useAuth } from '../lib/authContext.jsx'
 import { Lock } from 'lucide-react'
 
-// Константы типов подписки
-const SUBSCRIPTION_TYPES = {
-    MONTHLY: 1,
-    YEARLY: 2
+// Парсинг периода и валюты
+function normalizePeriod(period) {
+    const p = String(period || '').toLowerCase()
+    if (p.startsWith('month')) return 'monthly'
+    if (p.startsWith('year') || p.startsWith('annual')) return 'yearly'
+    return p
+}
+
+function toUah(amount, currency, rate) {
+    const cur = String(currency || '').toUpperCase()
+    const n = Number(amount || 0)
+    if (!isFinite(n)) return 0
+    if (cur === 'UAH') return n
+    if (cur === 'USD') return n * rate
+    return n * rate
+}
+
+function formatUah(n) {
+    try {
+        return new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', maximumFractionDigits: 0 }).format(n)
+    } catch {
+        return `${Math.round(n)} грн`
+    }
 }
 
 // Валидация номера телефона (украинский формат)
@@ -91,10 +110,63 @@ function parseAndValidateExpiry(expiry) {
 export default function SubscriptionPayment() {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
-    const { user, loading } = useAuth()
+    const planIdParam = searchParams.get('type')
+    const { user, loading, updateUser, refresh } = useAuth()
+    const [plans, setPlans] = useState([])
+    const [rate, setRate] = useState(40)
+    const [loadingRate, setLoadingRate] = useState(true)
+    const [loadingPlans, setLoadingPlans] = useState(true)
 
-    // Получаем тип подписки из URL параметров
-    const subscriptionType = searchParams.get('type') === 'yearly' ? SUBSCRIPTION_TYPES.YEARLY : SUBSCRIPTION_TYPES.MONTHLY
+    // Загрузка курсу USD→UAH
+    useEffect(() => {
+        let cancelled = false
+        async function fetchRate() {
+            try {
+                const res = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=UAH')
+                const data = await res.json()
+                const v = data?.rates?.UAH
+                if (!cancelled && typeof v === 'number' && isFinite(v)) setRate(v)
+            } catch {
+                try {
+                    const res2 = await fetch('https://open.er-api.com/v6/latest/USD')
+                    const data2 = await res2.json()
+                    const v2 = data2?.rates?.UAH
+                    if (!cancelled && typeof v2 === 'number' && isFinite(v2)) setRate(v2)
+                } catch { /* ignore */ }
+            } finally {
+                if (!cancelled) setLoadingRate(false)
+            }
+        }
+        fetchRate()
+        return () => { cancelled = true }
+    }, [])
+
+    // Загрузка планов
+    useEffect(() => {
+        let cancelled = false
+        async function fetchPlans() {
+            try {
+                const res = await PaymentAPI.getPlans()
+                if (!cancelled) setPlans(res?.plans || [])
+            } catch { /* ignore */ }
+            finally { if (!cancelled) setLoadingPlans(false) }
+        }
+        fetchPlans()
+        return () => { cancelled = true }
+    }, [])
+
+    const numericPlanId = Number(planIdParam || 0)
+    const selectedPlan = useMemo(() => (plans || []).find(p => Number(p.id) === numericPlanId) || null, [plans, numericPlanId])
+    const activePlanId = Number(user?.plan_id || 0)
+
+    // Редирект, если тип равен текущему или 0
+    useEffect(() => {
+        if (!loading && user) {
+            // if (!numericPlanId || numericPlanId === activePlanId) {
+            //     navigate('/account')
+            // }
+        }
+    }, [numericPlanId, activePlanId, user, loading, navigate])
 
     // Состояние формы
     const [formData, setFormData] = useState({
@@ -184,13 +256,17 @@ export default function SubscriptionPayment() {
         setSubmitError('')
 
         try {
+            if (!selectedPlan) {
+                setSubmitError('План не знайдено. Поверніться та оберіть план ще раз.')
+                return
+            }
             const parsed = parseAndValidateExpiry(formData.expiry)
             if (!parsed.valid) {
                 setErrors(prev => ({ ...prev, expiry: parsed.message || 'Невірний термін дії' }))
                 return
             }
             const payload = {
-                subscription_type: subscriptionType,
+                plan_id: numericPlanId,
                 phone: formData.phone.replace(/\s|-|\(|\)/g, ''),
                 card: formData.card.replace(/\s/g, ''),
                 cvv: formData.cvv,
@@ -198,7 +274,25 @@ export default function SubscriptionPayment() {
                 card_exp_year: String(parsed.yearFull).slice(-2)
             }
 
-            await PaymentAPI.createSubscription(payload)
+            const resp = await PaymentAPI.createSubscription(payload)
+
+            // Если бекенд возвращает подписку/план, сохраним это в user и освежим профиль
+            if (resp && typeof resp === 'object') {
+                // ожидаем хотя бы plan_id/status/start_date/end_date
+                const subscription = resp.subscription || resp
+                if (subscription) {
+                    updateUser({
+                        plan_id: subscription.plan_id ?? user?.plan_id,
+                        subscription_status: subscription.status ?? user?.subscription_status,
+                        subscription_start_date: subscription.start_date ?? user?.subscription_start_date,
+                        subscription_end_date: subscription.end_date ?? user?.subscription_end_date,
+                        subscription: true,
+                    })
+                }
+            }
+
+            // На всякий случай дернем refresh, если сервер выставляет статус только через /auth/me
+            try { await refresh() } catch { /* ignore */ }
 
             // Успешная оплата - перенаправляем на страницу успеха
             navigate('/subscription/success')
@@ -211,10 +305,18 @@ export default function SubscriptionPayment() {
         }
     }
 
-    const subscriptionTitle = subscriptionType === SUBSCRIPTION_TYPES.YEARLY ? 'Річна підписка' : 'Місячна підписка'
-    const subscriptionPrice = subscriptionType === SUBSCRIPTION_TYPES.YEARLY ? '$100/рік' : '$10/місяць'
+    const priceUah = useMemo(() => selectedPlan ? toUah(selectedPlan.amount, selectedPlan.currency, rate) : 0, [selectedPlan, rate])
+    const subscriptionTitle = selectedPlan ? `${selectedPlan.name} підписка` : 'Підписка'
+    const subscriptionPrice = selectedPlan ? `${formatUah(priceUah)} / ${normalizePeriod(selectedPlan.billing_period) === 'yearly' ? 'рік' : 'місяць'}` : ''
 
-    if (loading) {
+    // Если передали несуществующий plan_id — отправим назад на выбор планов
+    useEffect(() => {
+        if (!loadingPlans && numericPlanId && !selectedPlan) {
+            navigate('/subscription')
+        }
+    }, [loadingPlans, numericPlanId, selectedPlan, navigate])
+
+    if (loading || loadingPlans || loadingRate) {
         return <div className="flex justify-center items-center min-h-64">
             <div className="text-lg" style={{ color: 'var(--muted)' }}>Завантаження...</div>
         </div>
@@ -240,10 +342,14 @@ export default function SubscriptionPayment() {
                 <h3 className="font-semibold mb-2" style={{ color: 'var(--ink)' }}>{subscriptionTitle}</h3>
                 <div className="text-2xl font-bold mb-3" style={{ color: 'var(--accent)' }}>{subscriptionPrice}</div>
                 <ul className="space-y-1 text-sm" style={{ color: 'var(--muted)' }}>
-                    <li>✓ Необмежені токени для Юридичного ШІ</li>
-                    <li>✓ Безлімітні генерації документів (.docx)</li>
-                    <li>✓ Розширений правовий пошук з фільтрами</li>
-                    <li>✓ Пріоритетна черга відповідей ШІ</li>
+                    {(Array.isArray(selectedPlan?.features) && selectedPlan.features.length ? selectedPlan.features : [
+                        'Необмежені токени для Юридичного ШІ',
+                        'Безлімітні генерації документів (.docx)',
+                        'Розширений правовий пошук з фільтрами',
+                        'Пріоритетна черга відповідей ШІ',
+                    ]).map((f, i) => (
+                        <li key={i}>✓ {f}</li>
+                    ))}
                 </ul>
             </div>
 

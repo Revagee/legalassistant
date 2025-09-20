@@ -1,13 +1,46 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../lib/authContext.jsx'
+import { PaymentAPI } from '../lib/api.js'
+import { useNavigate } from 'react-router-dom'
+
+// Вспомогательные функции для работы с валютой и периодами
+function normalizePeriod(period) {
+    const p = String(period || '').toLowerCase()
+    if (p.startsWith('month')) return 'monthly'
+    if (p.startsWith('year') || p.startsWith('annual')) return 'yearly'
+    return p
+}
+
+function toUah(amount, currency, rate) {
+    const cur = String(currency || '').toUpperCase()
+    const n = Number(amount || 0)
+    if (!isFinite(n)) return 0
+    if (cur === 'UAH') return n
+    if (cur === 'USD') return n * rate
+    // неизвестная валюта — считаем как USD
+    return n * rate
+}
+
+function toUsd(amount, currency, rate) {
+    const cur = String(currency || '').toUpperCase()
+    const n = Number(amount || 0)
+    if (!isFinite(n)) return 0
+    if (cur === 'USD') return n
+    if (cur === 'UAH') return n / rate
+    return n / rate
+}
 
 function useUsdToUahRate() {
     const [rate, setRate] = useState(40) // запасной курс, если сеть недоступна
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-
+    const navigate = useNavigate()
+    const { user } = useAuth()
     useEffect(() => {
         let cancelled = false
+        // if (user?.plan_id !== 0) {
+        //     navigate('/account')
+        // }
         async function fetchRate() {
             try {
                 // Пытаемся получить курс USD→UAH из публичного API
@@ -18,7 +51,7 @@ function useUsdToUahRate() {
                 if (!cancelled && typeof v === 'number' && isFinite(v)) {
                     setRate(v)
                 }
-            } catch (e) {
+            } catch {
                 try {
                     // Резервный источник
                     const res2 = await fetch('https://open.er-api.com/v6/latest/USD')
@@ -135,44 +168,48 @@ function PlanCard({ title, price, period, ribbon, ctaLabel, onSelect, features, 
 
 export default function Subscription() {
     const { user } = useAuth()
+    const [plans, setPlans] = useState(null)
     const { rate, loading } = useUsdToUahRate()
 
+    const monthlyPlan = useMemo(() => (plans || []).find(p => normalizePeriod(p?.billing_period) === 'monthly'), [plans])
+    const yearlyPlan = useMemo(() => (plans || []).find(p => normalizePeriod(p?.billing_period) === 'yearly'), [plans])
+
     const prices = useMemo(() => {
-        const monthlyUah = 10 * rate
-        const yearlyUah = 100 * rate
+        const monthlyUah = monthlyPlan ? toUah(monthlyPlan.amount, monthlyPlan.currency, rate) : 10 * rate
+        const yearlyUah = yearlyPlan ? toUah(yearlyPlan.amount, yearlyPlan.currency, rate) : 100 * rate
         return {
             monthlyUah: Math.round(monthlyUah),
             yearlyUah: Math.round(yearlyUah),
         }
-    }, [rate])
+    }, [monthlyPlan, yearlyPlan, rate])
 
     const yearlySavingsPct = useMemo(() => {
-        const monthlyTotal = 12 * 10
-        const yearly = 100
-        const pct = 1 - yearly / monthlyTotal
-        return Math.round(pct * 100) // ~17%
-    }, [])
-
-    const premiumFeatures = useMemo(() => ([
-        'Необмежені токени для Юридичного ШІ',
-        'Безлімітні генерації документів (.docx)',
-        'Розширений правовий пошук з фільтрами',
-        'Експорт посилань на норми та практику',
-        'Історія чатів і закладки відповідей',
-        'Версії та збереження шаблонів документів',
-        'Пріоритетна черга відповідей ШІ',
-    ]), [])
-
-    const baseFeatures = useMemo(() => ([
-        'Генератор документів: позови, заяви, договори',
-        'Калькулятори: судовий збір, 3% річних, пеня, ЄСВ',
-        'База законів: пошук та перегляд',
-        'Юридичний словник і тренажер',
-    ]), [])
+        const monthlyUsd = monthlyPlan ? toUsd(monthlyPlan.amount, monthlyPlan.currency, rate) : 10
+        const yearlyUsd = yearlyPlan ? toUsd(yearlyPlan.amount, yearlyPlan.currency, rate) : 100
+        if (!monthlyUsd || !isFinite(monthlyUsd) || !yearlyUsd || !isFinite(yearlyUsd)) return 0
+        const monthlyTotalUsd = 12 * monthlyUsd
+        const pct = 1 - (yearlyUsd / monthlyTotalUsd)
+        return Math.max(0, Math.round(pct * 100))
+    }, [monthlyPlan, yearlyPlan, rate])
 
     // Определяем, есть ли у пользователя активная подписка
     const hasSubscription = user?.subscription === true
     const isFreePlan = !hasSubscription
+
+    // Загрузим планы и определим активный план по user.plan_id
+    useEffect(() => {
+        let cancelled = false
+        async function fetchPlans() {
+            try {
+                const res = await PaymentAPI.getPlans()
+                if (!cancelled) setPlans(res?.plans || [])
+            } catch { /* ignore */ }
+        }
+        fetchPlans()
+        return () => { cancelled = true }
+    }, [])
+
+    const activePlanId = Number(user?.plan_id || 0)
 
     const onSelectMonthly = () => {
         window.location.href = '/subscription/payment?type=monthly'
@@ -190,43 +227,25 @@ export default function Subscription() {
                         Усе зручніше і швидше: преміум відкриває розширені можливості та <strong>необмежені токени</strong> для Юридичного ШІ.
                     </p>
                     <p className="mt-1 text-xs" style={{ color: 'var(--muted)' }}>
-                        Ціни фіксовані в USD (місяць $10, рік $100) і конвертуються в гривні за поточним курсом. {loading ? 'Завантажуємо курс…' : ''}
+                        Ціни беруться з планів. Якщо валюта плану — USD, сума конвертується у гривні за поточним курсом. {loading ? 'Завантажуємо курс…' : ''}
                     </p>
                 </div>
             </section>
 
             <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px', alignItems: 'stretch' }}>
-                <PlanCard
-                    title="Безкоштовна"
-                    price={formatUah(0)}
-                    period="місяць"
-                    ctaLabel="Почати безкоштовно"
-                    onSelect={() => { window.location.href = '/ai' }}
-                    isCurrent={isFreePlan}
-                    features={[
-                        'Базові можливості чату',
-                        ...baseFeatures,
-                    ]}
-                />
-
-                <PlanCard
-                    title="Місячна"
-                    price={formatUah(prices.monthlyUah)}
-                    period="місяць"
-                    ctaLabel="Оформити місяць"
-                    onSelect={onSelectMonthly}
-                    features={[...baseFeatures, ...premiumFeatures.slice(0, 3), 'Скасувати можна будь-коли']}
-                />
-
-                <PlanCard
-                    title="Річна"
-                    price={formatUah(prices.yearlyUah)}
-                    period="рік"
-                    ribbon={`Вигідніше на ${yearlySavingsPct}%`}
-                    ctaLabel="Оформити рік"
-                    onSelect={onSelectYearly}
-                    features={[...baseFeatures, ...premiumFeatures]}
-                />
+                {plans?.map(plan => (
+                    <PlanCard
+                        title={plan.name}
+                        price={formatUah(plan.amount)}
+                        period={plan.billing_period}
+                        ctaLabel={plan.cta_label || 'Оформити'}
+                        onSelect={() => { window.location.href = `/subscription/payment?type=${plan.id}` }}
+                        isCurrent={plan.id === activePlanId}
+                        features={[
+                            ...plan.features,
+                        ]}
+                    />
+                ))}
             </section>
 
         </div>

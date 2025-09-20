@@ -1,11 +1,70 @@
 <!doctype html>
-<html lang="en">
+<html lang="uk">
 
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/pravohelper_thumbnail.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pravo Helper</title>
+  <meta http-equiv="Content-Language" content="uk-UA" />
+  <title>Pravo Helper — Юридичний ШІ, генерація документів, правова база</title>
+  <meta name="description"
+    content="PravoHelper — юридичний ШІ: генерація документів, правова база, калькулятори, консультації. Швидко, точно, українською.">
+  <meta name="keywords"
+    content="юридичний ШІ, генерація документів, правова база, адвокат, юрист, шаблони документів, Україна, PravoHelper">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#0b132b">
+
+  <!-- Open Graph -->
+  <meta property="og:locale" content="uk_UA">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PravoHelper">
+  <meta property="og:title" content="PravoHelper — Юридичний ШІ, генерація документів, правова база">
+  <meta property="og:description"
+    content="PravoHelper — юридичний ШІ: генерація документів, правова база, калькулятори, консультації. Швидко, точно, українською.">
+  <meta property="og:image" content="/pravohelper_thumbnail.png">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PravoHelper — Юридичний ШІ, генерація документів, правова база">
+  <meta name="twitter:description"
+    content="PravoHelper — юридичний ШІ: генерація документів, правова база, калькулятори, консультації. Швидко, точно, українською.">
+  <meta name="twitter:image" content="/pravohelper_thumbnail.png">
+
+  <!-- Canonical + Manifest -->
+  <link rel="canonical" href="/">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/pravohelper_thumbnail.png">
+
+  <!-- JSON-LD (динамическая подстановка домена) -->
+  <script>
+    (function () {
+      try {
+        var origin = (window.location && window.location.origin) ? window.location.origin : '';
+        var jsonLd = {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "PravoHelper",
+          "url": origin || "/",
+          "inLanguage": "uk-UA"
+        };
+        var orgLd = {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "PravoHelper",
+          "url": origin || "/",
+          "logo": origin + "/pravohelper_thumbnail.png"
+        };
+        var s1 = document.createElement('script');
+        s1.type = 'application/ld+json';
+        s1.text = JSON.stringify(jsonLd);
+        document.head.appendChild(s1);
+        var s2 = document.createElement('script');
+        s2.type = 'application/ld+json';
+        s2.text = JSON.stringify(orgLd);
+        document.head.appendChild(s2);
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     // Early theme apply to avoid FOUC

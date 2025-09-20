@@ -276,3 +276,188 @@ input[type="email"], input[type="password"], pre, code {
 .chat-fullscreen{
   height:calc(100dvh - var(--header-h, 56px));
 }
+
+/* Timeline component styles */
+.timeline-bubble-start {
+    position: absolute;
+    top: -32px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+    color: var(--accent);
+}
+
+.timeline-bubble-end {
+    position: absolute;
+    top: -32px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+    color: var(--accent);
+}
+
+.timeline-bubble-today {
+    position: absolute;
+    bottom: -48px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+    color: var(--accent);
+}
+
+.timeline-date-start {
+    position: absolute;
+    bottom: -24px;
+    font-size: 11px;
+    white-space: nowrap;
+    color: var(--muted);
+}
+
+.timeline-date-end {
+    position: absolute;
+    bottom: -24px;
+    font-size: 11px;
+    white-space: nowrap;
+    color: var(--muted);
+}
+
+/* Mobile responsive timeline bubbles */
+@media (max-width: 640px) {
+    .timeline-bubble-start,
+    .timeline-bubble-end {
+        top: -48px;
+        max-width: 80px;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.2;
+    }
+    
+    .timeline-bubble-today {
+        bottom: -64px;
+        max-width: 90px;
+        white-space: normal;
+        text-align: center;
+        line-height: 1.2;
+    }
+}
+
+/* Стили для модальных окон отмены подписки */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 28rem;
+    width: 100%;
+    margin: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideIn 0.3s ease-out;
+}
+
+.modal-icon-success {
+    background: color-mix(in oklab, #10b981 15%, transparent);
+    color: #10b981;
+}
+
+.modal-icon-warning {
+    background: color-mix(in oklab, #ef4444 15%, transparent);
+    color: #ef4444;
+}
+
+.modal-icon-info {
+    background: color-mix(in oklab, var(--accent) 15%, transparent);
+    color: var(--accent);
+}
+
+.radio-option {
+    transition: all 0.2s ease;
+}
+
+.radio-option:hover {
+    background: color-mix(in oklab, var(--accent) 5%, transparent);
+}
+
+.radio-option.selected {
+    background: color-mix(in oklab, var(--accent) 10%, transparent);
+    border-color: var(--accent);
+}
+
+.radio-dot {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    margin-right: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease;
+}
+
+.radio-dot.selected {
+    border-color: var(--accent);
+}
+
+.radio-dot-inner {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--accent);
+}
+
+.loading-spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

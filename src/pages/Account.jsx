@@ -1,12 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../lib/authContext.jsx'
 import { useNavigate } from 'react-router-dom'
+import { PaymentAPI } from '../lib/api.js'
+import SubscriptionTimeline from '../components/SubscriptionTimeline.jsx'
+import CancelSubscriptionModal from '../components/CancelSubscriptionModal.jsx'
+import CancellationSuccessModal from '../components/CancellationSuccessModal.jsx'
+import ErrorModal from '../components/ErrorModal.jsx'
+import RenewSubscriptionModal from '../components/RenewSubscriptionModal.jsx'
 
 export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
-    const { user, loading, isAuthenticated, logout } = useAuth()
+    const { user, loading, isAuthenticated, logout, updateUser } = useAuth()
     const navigate = useNavigate()
     const [active, setActive] = useState('home')
     const [avatar, setAvatar] = useState(avatarUrl)
+    const [cancellingSubscription, setCancellingSubscription] = useState(false)
+    const [subscriptionCancelled, setSubscriptionCancelled] = useState(false)
+    const [showCancelModal, setShowCancelModal] = useState(false)
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
+    const [showErrorModal, setShowErrorModal] = useState(false)
+    const [showRenewModal, setShowRenewModal] = useState(false)
+    const [renewingSubscription, setRenewingSubscription] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
+    const [_cancellationFeedback, setCancellationFeedback] = useState(null)
     useEffect(() => {
         try {
             const savedTab = localStorage.getItem('account_active_tab') || 'home'
@@ -17,6 +32,42 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
             // ignore localStorage errors
         }
     }, [])
+
+    // Подтягиваем актуальный статус подписки и планы при открытии вкладки "Підписка"
+    useEffect(() => {
+        async function fetchSubscriptionData() {
+            if (active !== 'subscription') return
+            try {
+                // Сбрасываем локальный флаг перед новой загрузкой
+                setSubscriptionCancelled(false)
+                const [subscription, plans] = await Promise.all([
+                    PaymentAPI.getUserSubscription().catch(() => null),
+                    PaymentAPI.getPlans().catch(() => null),
+                ])
+                if (subscription?.status === 'cancelled') {
+                    setSubscriptionCancelled(true)
+                }
+                if (subscription && typeof subscription === 'object') {
+                    updateUser({
+                        plan_id: subscription.plan_id ?? user?.plan_id,
+                        subscription_status: subscription.status ?? user?.subscription_status,
+                        subscription_start_date: subscription.start_date ?? user?.subscription_start_date,
+                        subscription_end_date: subscription.end_date ?? user?.subscription_end_date,
+                        subscription: subscription.status === 'active',
+                    })
+                }
+                setAvailablePlans(plans?.plans || null)
+            } catch {
+                // ignore
+            }
+        }
+        fetchSubscriptionData()
+        return () => { /* no-op */ }
+    }, [active, updateUser, user?.plan_id, user?.subscription_status, user?.subscription_start_date, user?.subscription_end_date])
+
+    const [availablePlans, setAvailablePlans] = useState(null)
+    // пока планы не используются в UI, подавим предупреждение об их неиспользовании
+    void availablePlans
 
     function switchTab(key) {
         setActive(key)
@@ -43,6 +94,77 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
         reader.readAsDataURL(file)
     }
 
+    function handleCancelSubscriptionClick() {
+        setShowCancelModal(true)
+    }
+
+
+    async function handleConfirmCancellation(feedbackData) {
+        if (cancellingSubscription) return
+
+        try {
+            setCancellingSubscription(true)
+            setCancellationFeedback(feedbackData)
+
+            // Здесь можно отправить feedbackData на сервер для аналитики
+            console.log('Cancellation feedback:', feedbackData)
+
+            await PaymentAPI.cancelSubscription()
+            setSubscriptionCancelled(true)
+            setShowCancelModal(false)
+            setShowSuccessModal(true)
+        } catch (error) {
+            console.error('Помилка при скасуванні підписки:', error)
+            setErrorMessage('Виникла помилка при скасуванні підписки. Спробуйте пізніше або зверніться до підтримки.')
+            setShowErrorModal(true)
+        } finally {
+            setCancellingSubscription(false)
+        }
+    }
+
+    async function handleRenewSubscription(cardData) {
+        if (renewingSubscription) return
+
+        try {
+            setRenewingSubscription(true)
+
+            const subscriptionData = {
+                plan_id: user?.plan_id || 1, // Используем текущий план или дефолтный
+                phone: cardData.phone.replace(/\s|-|\(|\)/g, ''),
+                card: cardData.cardNumber.replace(/\s/g, ''),
+                cvv: cardData.cvc,
+                card_exp_month: cardData.expiryMonth,
+                card_exp_year: cardData.expiryYear
+            }
+
+            const response = await PaymentAPI.createSubscription(subscriptionData)
+
+            // Обновляем данные пользователя с ответа сервера
+            if (response && typeof response === 'object') {
+                const subscription = response.subscription || response
+                if (subscription) {
+                    updateUser({
+                        plan_id: subscription.plan_id ?? user?.plan_id,
+                        subscription_status: subscription.status ?? user?.subscription_status,
+                        subscription_start_date: subscription.start_date ?? user?.subscription_start_date,
+                        subscription_end_date: subscription.end_date ?? user?.subscription_end_date,
+                        subscription: subscription.status === 'active',
+                    })
+                }
+                setSubscriptionCancelled(false)
+            }
+
+            setShowRenewModal(false)
+            // Можно показать уведомление об успехе
+        } catch (error) {
+            console.error('Помилка при відновленні підписки:', error)
+            setErrorMessage('Виникла помилка при відновленні підписки. Перевірте дані карти та спробуйте ще раз.')
+            setShowErrorModal(true)
+        } finally {
+            setRenewingSubscription(false)
+        }
+    }
+
     useEffect(() => {
         if (!loading && !isAuthenticated) {
             navigate('/auth/login?next=' + encodeURIComponent('/account'))
@@ -59,13 +181,16 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
 
     const createdAt = user?.created_at ? new Date(user.created_at) : null
     const createdLabel = createdAt ? createdAt.toLocaleDateString() + ' ' + createdAt.toLocaleTimeString() : null
+    const isSubscriptionActive = user?.subscription === true || user?.subscription_status === 'active'
+    const isSubscriptionCancelled = subscriptionCancelled || user?.subscription_status === 'cancelled'
+    const hasSubscription = isSubscriptionActive || isSubscriptionCancelled
 
     return (
         <div className="mx-auto max-w-5xl px-4 py-8">
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Акаунт</h1>
 
-            <div className="mt-6 grid gap-6 md:grid-cols-[250px,1fr]">
-                <aside className="rounded-xl border p-4 h-max" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
+            <div className="mt-6 flex flex-col md:flex-row gap-6">
+                <aside className="rounded-xl border p-4 h-max md:w-1/3 md:flex-shrink-0" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
                     <nav className="flex flex-col gap-2" aria-label="Меню акаунту">
                         <button
                             type="button"
@@ -135,9 +260,9 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
                     </nav>
                 </aside>
 
-                <section className="flex flex-col gap-6">
+                <section className="flex flex-col gap-6 w-full md:w-2/3">
                     {active === 'home' && (
-                        <div className="rounded-xl border p-5" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
+                        <div className="rounded-xl border p-5 w-full" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
                             <div className="flex items-center gap-5">
                                 <div className="relative group">
                                     <img src={avatar} alt="avatar" className="h-20 w-20 rounded-full border object-cover" style={{ borderColor: 'var(--border)' }} />
@@ -177,18 +302,34 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
 
                     {active === 'subscription' && (
                         <div className="rounded-xl border p-5" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
-                            <div className="text-lg font-semibold mb-4" style={{ color: 'var(--ink)' }}>Управління підпискою</div>
-                            {user?.subscription ? (
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 rounded-lg" style={{ background: 'color-mix(in oklab, var(--accent) 10%, transparent)' }}>
+                            <div className="text-lg font-semibold mb-4" style={{ color: 'var(--ink)' }}>
+                                Керування підпискою</div>
+                            {hasSubscription ? (
+                                <div className="space-y-6">
+                                    <div className="flex mb-14 items-center justify-between p-4 rounded-lg" style={{ background: 'color-mix(in oklab, var(--accent) 10%, transparent)' }}>
                                         <div>
-                                            <div className="font-semibold" style={{ color: 'var(--ink)' }}>Активна підписка</div>
+                                            <div className="font-semibold" style={{ color: 'var(--ink)' }}>
+                                                {isSubscriptionCancelled ? 'Підписка скасована' : 'Активна підписка'}
+                                            </div>
                                             <div className="text-sm" style={{ color: 'var(--muted)' }}>Преміум план</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-sm font-semibold" style={{ color: 'var(--accent)' }}>Активна</div>
+                                            <div className="text-sm font-semibold" style={{ color: isSubscriptionCancelled ? '#ef4444' : 'var(--accent)' }}>
+                                                {isSubscriptionCancelled ? 'Скасована' : 'Активна'}
+                                            </div>
                                         </div>
                                     </div>
+
+                                    {/* Таймлайн подписки */}
+                                    {(isSubscriptionCancelled || user?.subscription_end_date) && (
+                                        <SubscriptionTimeline
+                                            subscriptionStartDate={user?.subscription_start_date}
+                                            subscriptionEndDate={user?.subscription_end_date}
+                                            status={user?.subscription_status}
+                                            className="p-4 rounded-lg"
+                                        />
+                                    )}
+
                                     <div className="space-y-2">
                                         <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Переваги:</div>
                                         <ul className="text-sm space-y-1" style={{ color: 'var(--muted)' }}>
@@ -198,9 +339,34 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
                                             <li>• Історія чатів і закладки</li>
                                         </ul>
                                     </div>
-                                    <button className="mt-4 px-4 py-2 text-sm font-medium rounded-lg transition-colors" style={{ background: '#ef4444', color: '#ffffff' }}>
-                                        Скасувати підписку
-                                    </button>
+
+                                    {isSubscriptionActive && (
+                                        <button
+                                            onClick={handleCancelSubscriptionClick}
+                                            disabled={cancellingSubscription}
+                                            className="mt-4 px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            style={{ background: '#ef4444', color: '#ffffff' }}
+                                        >
+                                            Скасувати підписку
+                                        </button>
+                                    )}
+
+                                    {isSubscriptionCancelled && (
+                                        <div className="mt-4 p-4 rounded-lg" style={{ background: 'color-mix(in oklab, #ef4444 10%, transparent)', borderLeft: '4px solid #ef4444' }}>
+                                            <div className="text-sm font-semibold mb-1" style={{ color: '#ef4444' }}>Підписку скасовано</div>
+                                            <div className="text-xs" style={{ color: 'var(--muted)' }}>
+                                                Ви зможете користуватися преміум функціями до кінця оплаченого періоду.
+                                                Якщо хочете відновити підписку, оформіть нову.
+                                            </div>
+                                            <button
+                                                onClick={() => setShowRenewModal(true)}
+                                                className="mt-3 inline-flex items-center px-3 py-1 text-xs font-medium rounded transition-colors"
+                                                style={{ background: 'var(--accent)', color: '#ffffff' }}
+                                            >
+                                                Відновити підписку
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="space-y-4">
@@ -228,6 +394,44 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
                     )}
                 </section>
             </div>
+
+            {/* Модальные окна */}
+            <CancelSubscriptionModal
+                isOpen={showCancelModal}
+                onClose={() => setShowCancelModal(false)}
+                onConfirm={handleConfirmCancellation}
+                isLoading={cancellingSubscription}
+            />
+
+            <ErrorModal
+                isOpen={showErrorModal}
+                onClose={() => setShowErrorModal(false)}
+                title="Помилка скасування підписки"
+                message={errorMessage}
+                onRetry={() => {
+                    setShowErrorModal(false)
+                    if (_cancellationFeedback) {
+                        handleConfirmCancellation(_cancellationFeedback)
+                    }
+                }}
+            />
+
+            <CancellationSuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                subscriptionEndDate={user?.subscription_end_date}
+                onNavigateToSubscription={() => {
+                    setShowSuccessModal(false)
+                    navigate('/subscription')
+                }}
+            />
+
+            <RenewSubscriptionModal
+                isOpen={showRenewModal}
+                onClose={() => setShowRenewModal(false)}
+                onRenew={handleRenewSubscription}
+                isLoading={renewingSubscription}
+            />
         </div>
     )
 }

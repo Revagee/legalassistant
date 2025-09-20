@@ -9,6 +9,7 @@ const AuthContext = createContext({
     register: async (_name, _email, _password) => { },
     logout: async () => { },
     refresh: async () => { },
+    updateUser: (_partial) => { },
 })
 
 export function AuthProvider({ children }) {
@@ -101,6 +102,10 @@ export function AuthProvider({ children }) {
         return loadMe()
     }, [loadMe])
 
+    const updateUser = useCallback((partial) => {
+        setUser((prev) => ({ ...(prev || {}), ...(partial || {}) }))
+    }, [])
+
     const value = useMemo(() => ({
         isAuthenticated: !!user,
         user,
@@ -109,7 +114,8 @@ export function AuthProvider({ children }) {
         register,
         logout,
         refresh: manualRefresh,
-    }), [user, loading, login, register, logout, manualRefresh])
+        updateUser,
+    }), [user, loading, login, register, logout, manualRefresh, updateUser])
 
     return (
         <AuthContext.Provider value={value}>

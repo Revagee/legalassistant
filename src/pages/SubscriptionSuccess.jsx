@@ -19,7 +19,7 @@ export default function SubscriptionSuccess() {
                     <Link to="/ai" className="px-4 py-3 rounded-lg text-sm font-medium text-white text-center" style={{ background: 'var(--accent)' }}>
                         До AI‑чату
                     </Link>
-                    <Link to="/subscription" className="px-4 py-3 rounded-lg text-sm font-medium text-center border" style={{ borderColor: 'var(--border)', color: 'var(--ink)' }}>
+                    <Link to="/account" className="px-4 py-3 rounded-lg text-sm font-medium text-center border" style={{ borderColor: 'var(--border)', color: 'var(--ink)' }}>
                         Керувати підпискою
                     </Link>
                 </div>

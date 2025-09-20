@@ -104,7 +104,7 @@ export function Header() {
         { href: '/documents', label: 'Документи' },
         { href: '/generated', label: 'Файли' },
     ]
-    const shouldShowPlus = !user || user?.subscription !== true
+    const shouldShowPlus = !user || user?.plan_id === 0
     const navItems = shouldShowPlus
         ? [...baseNavItems, { href: '/subscription', label: 'Помічник+', special: true }]
         : baseNavItems

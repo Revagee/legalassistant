@@ -185,5 +185,14 @@ export const PaymentAPI = {
     async createSubscription(subscriptionData) {
         return apiRequest('/payments/subscription/create', { method: 'POST', body: subscriptionData });
     },
+    async cancelSubscription() {
+        return apiRequest('/payments/subscription/cancel', { method: 'POST', });
+    },
+    async getUserSubscription() {
+        return apiRequest('/payments/subscription/user_subscription', { method: 'GET' });
+    },
+    async getPlans() {
+        return apiRequest('/payments/subscription/plans', { method: 'GET' });
+    },
 };
 
