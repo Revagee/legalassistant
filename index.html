@@ -13,6 +13,40 @@
     content="юридичний ШІ, генерація документів, правова база, адвокат, юрист, шаблони документів, Україна, PravoHelper">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="theme-color" content="#0b132b">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- Theme preflight: минимальный набор переменных и фона до загрузки CSS/JS -->
+  <style id="theme-preflight">
+    :root {
+      --bg: #ffffff;
+      --ink: #0b132b;
+      color-scheme: light
+    }
+
+    html[data-theme="dark"] {
+      --bg: #0b0f14;
+      --ink: #e6edf7;
+      color-scheme: dark
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html:not([data-theme]) {
+        --bg: #0b0f14;
+        --ink: #e6edf7;
+        color-scheme: dark
+      }
+    }
+
+    html,
+    body,
+    #root,
+    main,
+    header,
+    footer {
+      background: var(--bg);
+      color: var(--ink)
+    }
+  </style>
 
   <!-- Open Graph -->
   <meta property="og:locale" content="uk_UA">
@@ -31,10 +65,19 @@
   <meta name="twitter:image" content="/pravohelper_thumbnail.png">
 
   <!-- Canonical + Manifest -->
-  <link rel="canonical" href="/">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="files/manifest.json">
   <link rel="apple-touch-icon" href="/pravohelper_thumbnail.png">
 
+  <script>
+    (function () {
+      try {
+        var l = document.createElement('link');
+        l.rel = 'canonical';
+        l.href = window.location.origin + window.location.pathname;
+        document.head.appendChild(l);
+      } catch (e) {}
+    })();
+  </script>
   <!-- JSON-LD (динамическая подстановка домена) -->
   <script>
     (function () {
@@ -65,7 +108,6 @@
       } catch (e) { /* ignore */ }
     })();
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     // Early theme apply to avoid FOUC
     (function () {
@@ -74,11 +116,18 @@
         var saved = localStorage.getItem(key);
         var theme = (saved === 'dark' || saved === 'light') ? saved : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', theme);
+        // Немедленно красим фон html, чтобы исключить белую вспышку до загрузки CSS
+        document.documentElement.style.backgroundColor = theme === 'dark' ? '#0b0f14' : '#ffffff';
+        // Синхронизируем адресную строку/системный бар на мобильных
+        var metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) metaTheme.setAttribute('content', theme === 'dark' ? '#0b0f14' : '#ffffff');
       } catch (e) {
         document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.style.backgroundColor = '#ffffff';
       }
     })();
   </script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -89,8 +138,8 @@
   <style id="theme-assert">
     html,
     body {
-      background: var(--bg, #ffffff);
-      color: var(--ink, #111827);
+      background: var(--bg);
+      color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif
     }
   </style>
