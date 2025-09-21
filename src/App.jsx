@@ -6,12 +6,6 @@ import Landing from './pages/landing/Landing.jsx'
 import TemplatesIndex from './pages/TemplatesIndex.jsx'
 import TemplateForm from './pages/TemplateForm.jsx'
 import Generated from './pages/Generated.jsx'
-import CalculatorsIndex from './pages/CalculatorsIndex.jsx'
-import Fees from './pages/Fees.jsx'
-import Interest from './pages/Interest.jsx'
-import Penalty from './pages/Penalty.jsx'
-import Esv from './pages/Esv.jsx'
-import Alimony from './pages/Alimony.jsx'
 import AIChat from './pages/AIChat.jsx'
 import Dictionary from './pages/Dictionary.jsx'
 import Database from './pages/Database.jsx'
@@ -41,6 +35,7 @@ import Refunds from './pages/Refunds.jsx'
 import Delivery from './pages/Delivery.jsx'
 import Merchant from './pages/Merchant.jsx'
 import Pricing from './pages/Pricing.jsx'
+import NotFound from './pages/NotFound.jsx'
 
 export default function App() {
   return (
@@ -51,12 +46,6 @@ export default function App() {
           <Route path="/templates" element={<><Title title="Шаблони документів" /><TemplatesIndex /></>} />
           <Route path="/template" element={<><Title title="Створення документа" /><TemplateForm /></>} />
           <Route path="/generated" element={<><Title title="Сгенеровані документи" /><Generated /></>} />
-          <Route path="/calculators" element={<><Title title="Калькулятори" /><CalculatorsIndex /></>} />
-          <Route path="/calculators/fees" element={<><Title title="Судовий збір" /><Fees /></>} />
-          <Route path="/calculators/interest" element={<><Title title="Проценти" /><Interest /></>} />
-          <Route path="/calculators/penalty" element={<><Title title="Пеня" /><Penalty /></>} />
-          <Route path="/calculators/esv" element={<><Title title="ЄСВ" /><Esv /></>} />
-          <Route path="/calculators/alimony" element={<><Title title="Аліменти" /><Alimony /></>} />
           <Route path="/ai" element={<><Title title="AI-чат" /><AIChat /></>} />
           <Route path="/dictionary" element={<><Title title="Юридичний словник" /><Dictionary /></>} />
           <Route path="/database" element={<><Title title="Правова база" /><Database /></>} />
@@ -85,6 +74,7 @@ export default function App() {
           <Route path="/delivery" element={<><Title title="Доставка та отримання" /><Delivery /></>} />
           <Route path="/merchant" element={<><Title title="Про власника" /><Merchant /></>} />
           <Route path="/pricing" element={<><Title title="Ціни" /><Pricing /></>} />
+          <Route path="*" element={<><Title title="Сторінка не знайдена" /><NotFound /></>} />
         </Routes>
       </Layout>
     </BrowserRouter>

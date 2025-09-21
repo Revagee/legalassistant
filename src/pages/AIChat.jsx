@@ -114,12 +114,14 @@ export default function AIChat() {
                 closeStream()
                 fetchThreads().catch(() => { })
             } else if (text === 'error') {
-                // Сервер сообщил об ошибке генерации в процессе SSE
-                setMessages((prev) => ([
-                    ...prev,
-                    { type: 'ai_error', content: 'Помилка генерації відповіді' }
-                ]))
-                if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+                // Сервер сообщил об ошибке генерации. Показываем только если поток начался.
+                if (started) {
+                    setMessages((prev) => ([
+                        ...prev,
+                        { type: 'ai_error', content: 'Помилка генерації відповіді' }
+                    ]))
+                    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+                }
                 closeStream()
             }
         })
@@ -128,12 +130,16 @@ export default function AIChat() {
             setToolCallText(text)
         })
         es.onerror = () => {
-            // Если соединение оборвалось, покажем единичное сообщение об ошибке
-            setMessages((prev) => {
-                if (prev.length && prev[prev.length - 1].type === 'ai_error') return prev
-                return [...prev, { type: 'ai_error', content: 'Помилка генерації відповіді' }]
-            })
-            if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+            // Показываем ошибку только если поток реально начался.
+            // При первичном подключении SSE часто эмитит onerror (reconnect),
+            // что не является ошибкой генерации и не должно пугать пользователя.
+            if (started) {
+                setMessages((prev) => {
+                    if (prev.length && prev[prev.length - 1].type === 'ai_error') return prev
+                    return [...prev, { type: 'ai_error', content: 'Помилка генерації відповіді' }]
+                })
+                if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+            }
             closeStream()
         }
     }

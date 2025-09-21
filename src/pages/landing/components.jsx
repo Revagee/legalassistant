@@ -93,23 +93,64 @@ export function FeaturesCarousel() {
 export function Header() {
     const { isAuthenticated, user } = useAuth()
     const [menuOpen, setMenuOpen] = useState(false)
+    const [documentsDropdownOpen, setDocumentsDropdownOpen] = useState(false)
+    const [studentsDropdownOpen, setStudentsDropdownOpen] = useState(false)
+    const docsTimerRef = useRef(null)
+    const studentsTimerRef = useRef(null)
+
+    const openDropdown = (label) => {
+        if (label === 'Документи') {
+            if (docsTimerRef.current) { clearTimeout(docsTimerRef.current) }
+            setDocumentsDropdownOpen(true)
+        }
+        if (label === 'Для студентів') {
+            if (studentsTimerRef.current) { clearTimeout(studentsTimerRef.current) }
+            setStudentsDropdownOpen(true)
+        }
+    }
+
+    const scheduleCloseDropdown = (label) => {
+        if (label === 'Документи') {
+            if (docsTimerRef.current) { clearTimeout(docsTimerRef.current) }
+            docsTimerRef.current = setTimeout(() => setDocumentsDropdownOpen(false), 160)
+        }
+        if (label === 'Для студентів') {
+            if (studentsTimerRef.current) { clearTimeout(studentsTimerRef.current) }
+            studentsTimerRef.current = setTimeout(() => setStudentsDropdownOpen(false), 160)
+        }
+    }
 
     const baseNavItems = [
         { href: '/ai', label: 'ШІ' },
-        { href: '/templates', label: 'Генератор' },
-        { href: '/calculators', label: 'Калькулятори' },
-        { href: '/database', label: 'База' },
-        { href: '/dictionary', label: 'Словник' },
-        { href: '/trainer', label: 'Тренажер' },
-        { href: '/documents', label: 'Документи' },
-        { href: '/generated', label: 'Файли' },
+        { href: '/database', label: 'Законодавство' },
+        {
+            label: 'Документи',
+            dropdown: true,
+            items: [
+                { href: '/documents', label: 'Шаблони' },
+                { href: '/templates', label: 'Генератори' },
+                { href: '/generated', label: 'Мої файли' },
+            ]
+        },
+        {
+            label: 'Для студентів',
+            dropdown: true,
+            items: [
+                { href: '/dictionary', label: 'Словник' },
+                { href: '/trainer', label: 'Тренажери' },
+            ]
+        },
     ]
     const shouldShowPlus = !user || user?.plan_id === 0
     const navItems = shouldShowPlus
         ? [...baseNavItems, { href: '/subscription', label: 'Помічник+', special: true }]
         : baseNavItems
 
-    const closeMenu = () => setMenuOpen(false)
+    const closeMenu = () => {
+        setMenuOpen(false)
+        setDocumentsDropdownOpen(false)
+        setStudentsDropdownOpen(false)
+    }
 
     return (
         <header className="border-b border-gray-200" data-menu-open={menuOpen ? 'true' : 'false'}>
@@ -120,7 +161,7 @@ export function Header() {
                 </a>
 
                 <nav className="hidden md:flex items-center gap-5">
-                    {navItems.map((item) => (
+                    {navItems.map((item, index) => (
                         item.special ? (
                             <a
                                 key={item.href}
@@ -130,6 +171,40 @@ export function Header() {
                             >
                                 {item.label}
                             </a>
+                        ) : item.dropdown ? (
+                            <div
+                                key={index}
+                                className="relative"
+                                onMouseEnter={() => openDropdown(item.label)}
+                                onMouseLeave={() => scheduleCloseDropdown(item.label)}
+                            >
+                                <button
+                                    type="button"
+                                    className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1"
+                                >
+                                    {item.label}
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                {((item.label === 'Документи' && documentsDropdownOpen) || (item.label === 'Для студентів' && studentsDropdownOpen)) && (
+                                    <div
+                                        className="absolute top-full left-0 mt-0 py-2 w-40 rounded-md shadow-lg z-50 border"
+                                        style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+                                    >
+                                        {item.items.map((subItem) => (
+                                            <a
+                                                key={subItem.href}
+                                                href={subItem.href}
+                                                className="popup-item-desktop block px-4 py-2 text-sm text-gray-700 transition-colors hover:opacity-90 color-var(--ink)"
+                                                style={{color: 'var(--ink)' }}
+                                            >
+                                                {subItem.label}
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <a key={item.href} href={item.href} className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">{item.label}</a>
                         )
@@ -169,7 +244,7 @@ export function Header() {
 
             <div className="mobile-nav md:hidden border-t border-gray-200">
                 <div className="mx-auto max-w-7xl px-6 py-3 grid gap-2">
-                    {navItems.map((item) => (
+                    {navItems.map((item, index) => (
                         item.special ? (
                             <a
                                 key={item.href}
@@ -180,6 +255,36 @@ export function Header() {
                             >
                                 {item.label}
                             </a>
+                        ) : item.dropdown ? (
+                            <div key={index} className="space-y-1">
+                                <button
+                                    type="button"
+                                    className="w-full text-left rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100 flex items-center justify-between"
+                                    onClick={() => {
+                                        if (item.label === 'Документи') setDocumentsDropdownOpen(!documentsDropdownOpen)
+                                        if (item.label === 'Для студентів') setStudentsDropdownOpen(!studentsDropdownOpen)
+                                    }}
+                                >
+                                    {item.label}
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                {((item.label === 'Документи' && documentsDropdownOpen) || (item.label === 'Для студентів' && studentsDropdownOpen)) && (
+                                    <div className="ml-4 space-y-1">
+                                        {item.items.map((subItem) => (
+                                            <a
+                                                key={subItem.href}
+                                                href={subItem.href}
+                                                onClick={closeMenu}
+                                                className="block rounded-md px-2 py-2 text-sm text-gray-600 hover:bg-gray-50 active:bg-gray-100"
+                                            >
+                                                {subItem.label}
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         ) : (
                             <a key={item.href} href={item.href} onClick={closeMenu} className="rounded-md px-2 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 active:bg-gray-100">{item.label}</a>
                         )

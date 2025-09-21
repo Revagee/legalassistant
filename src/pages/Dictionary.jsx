@@ -52,7 +52,20 @@ export default function Dictionary({ q = '' }) {
         return `/ai?q=${encodeURIComponent(aq)}`
     }, [query])
 
-    const termList = useMemo(() => Object.keys(ALL_TERMS).sort((a, b) => a.localeCompare(b, ['uk', 'ru'], { sensitivity: 'base' })), [])
+    const termsByLetter = useMemo(() => {
+        const sorted = Object.keys(ALL_TERMS).sort((a, b) => a.localeCompare(b, ['uk', 'ru'], { sensitivity: 'base' }))
+        const grouped = {}
+
+        for (const term of sorted) {
+            const firstLetter = term.charAt(0).toUpperCase()
+            if (!grouped[firstLetter]) {
+                grouped[firstLetter] = []
+            }
+            grouped[firstLetter].push(term)
+        }
+
+        return grouped
+    }, [])
 
     return (
         <div className="mx-auto max-w-5xl px-6 py-8">
@@ -87,18 +100,26 @@ export default function Dictionary({ q = '' }) {
                 <>
                     <h3 className="mt-8 text-lg font-semibold" style={{ color: 'var(--ink)' }}>Список термінів</h3>
                     <div className="mt-3 rounded-xl p-5 max-h-[420px] overflow-auto" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
-                        <ul className="pl-5 [column-count:1] sm:[column-count:2] [column-gap:24px]">
-                            {termList.map((term) => (
-                                <li
-                                    key={term}
-                                    className="break-inside-avoid text-sm leading-7 cursor-pointer hover:underline"
-                                    style={{ color: 'var(--ink)' }}
-                                    onClick={() => setQuery(term)}
-                                >
-                                    {term}
-                                </li>
-                            ))}
-                        </ul>
+                        {Object.entries(termsByLetter).map(([letter, terms]) => (
+                            <div key={letter} className="mb-6 last:mb-0">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <h4 className="text-lg font-bold" style={{ color: 'var(--accent)' }}>{letter}</h4>
+                                    <div className="flex-1 h-px" style={{ background: 'var(--border)' }}></div>
+                                </div>
+                                <ul className="pl-2 [column-count:1] sm:[column-count:2] [column-gap:24px]">
+                                    {terms.map((term) => (
+                                        <li
+                                            key={term}
+                                            className="break-inside-avoid text-sm leading-7 cursor-pointer hover:underline"
+                                            style={{ color: 'var(--ink)' }}
+                                            onClick={() => setQuery(term)}
+                                        >
+                                            {term}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
                     </div>
                 </>
             )}

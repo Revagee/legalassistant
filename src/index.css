@@ -264,6 +264,9 @@ input[type="email"], input[type="password"], pre, code {
 .thread-item__delete-icon:hover{color:red; background:var(--surface); border-color:var(--border)}
 .thread-button-group{display:flex; align-items:center; gap:6px}
 
+.popup-item-desktop:hover{background:var(--surface); color:var(--ink)}
+
+
 
 @media (max-width: 768px){
   .thread-item{grid-template-columns:1fr auto auto}

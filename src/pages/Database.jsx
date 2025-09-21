@@ -354,7 +354,7 @@ export default function Database() {
                     <div className={`${isMobile ? 'w-full' : 'w-1/3'} border-r flex flex-col`} style={{ borderColor: 'var(--border)' }}>
                         {/* Заголовок и форма поиска */}
                         <div className="p-4 border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
-                            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4" style={{ color: 'var(--accent)' }}>База кодексів</h1>
+                            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4" style={{ color: 'var(--accent)' }}>Законодавча база</h1>
                             <form onSubmit={onSubmitUnified}>
                                 <div className="space-y-4">
                                     <div>
@@ -702,7 +702,7 @@ function CodesTable({ codes, onSelectCode }) {
                         {codeEntries.map(([name, meta]) => (
                             <tr
                                 key={meta.id}
-                                className="border-b hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                                className="border-b hover:bg-gray-50 cursor-pointer"
                                 style={{ borderColor: 'var(--border)' }}
                                 onClick={() => onSelectCode(meta.id, name)}
                             >

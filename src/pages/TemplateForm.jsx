@@ -67,7 +67,7 @@ export default function TemplateForm({ templateKey = '' }) {
                             )}
                         </div>
                     ))}
-                    <button className="mt-2 inline-flex rounded-md bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-95" type="submit">Згенерувати документ</button>
+                    <button className="mt-2 inline-flex items-center justify-center rounded-md bg-[var(--accent)] px-4 h-10 text-sm font-medium text-white hover:opacity-95" type="submit" style={{ alignSelf: 'flex-end' }}>Згенерувати документ</button>
                 </form>
             ) : (
                 <p className="mt-6 text-sm" style={{ color: '#4B5563' }}>Шаблон не знайдено.</p>
