@@ -1,7 +1,7 @@
 import fs from 'fs';
+import path from 'path';
 
-const HTML_FILE = '/Users/alexanderrekachynskyi/Programming/lawbotFrontend/lawbot/public/codes/435-15.html';
-const OUTPUT_JSON = '/Users/alexanderrekachynskyi/Programming/lawbotFrontend/lawbot/public/codes/435-15.json';
+const CODES_DIR = '/Users/alexanderrekachynskyi/Programming/lawbotFrontend/lawbot/public/codes';
 
 function decodeHtmlEntities(input) {
     if (!input) return '';
@@ -95,16 +95,44 @@ function extractArticles(html) {
     return articles;
 }
 
+function processHtmlFilesInDirectory(directoryPath) {
+    const entries = fs.readdirSync(directoryPath, { withFileTypes: true });
+    const htmlFiles = entries
+        .filter(dirent => dirent.isFile())
+        .map(dirent => dirent.name)
+        .filter(name => {
+            const lower = name.toLowerCase();
+            return lower.endsWith('.html') || lower.endsWith('.htm');
+        });
+
+    let processedCount = 0;
+    for (const filename of htmlFiles) {
+        try {
+            const inputPath = path.join(directoryPath, filename);
+            const outputFilename = path.basename(filename, path.extname(filename)) + '.json';
+            const outputPath = path.join(directoryPath, outputFilename);
+
+            const html = fs.readFileSync(inputPath, 'utf8');
+            const articles = extractArticles(html);
+            const out = {
+                source: filename,
+                timestamp: new Date().toISOString(),
+                articles
+            };
+            const json = JSON.stringify(out, null, 4);
+            fs.writeFileSync(outputPath, json, 'utf8');
+            console.log(`Written ${Object.keys(articles).length} articles to ${outputPath}`);
+            processedCount++;
+        } catch (error) {
+            console.error(`Failed to process ${filename}:`, error && error.message ? error.message : error);
+        }
+    }
+
+    console.log(`Processed ${processedCount} HTML file(s) in ${directoryPath}`);
+}
+
 function main() {
-    const html = fs.readFileSync(HTML_FILE, 'utf8');
-    const articles = extractArticles(html);
-    const out = {
-        timestamp: new Date().toISOString(),
-        articles
-    };
-    const json = JSON.stringify(out, null, 4);
-    fs.writeFileSync(OUTPUT_JSON, json, 'utf8');
-    console.log(`Written ${Object.keys(articles).length} articles to ${OUTPUT_JSON}`);
+    processHtmlFilesInDirectory(CODES_DIR);
 }
 
 main();

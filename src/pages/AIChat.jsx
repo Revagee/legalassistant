@@ -38,6 +38,38 @@ export default function AIChat() {
         return thread?.last_activity_time || new Date().toISOString()
     }
 
+    function groupThreadsByDate(threads) {
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+        const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+
+        const groups = {
+            today: { label: 'Сьогодні', threads: [] },
+            yesterday: { label: 'Вчора', threads: [] },
+            thisMonth: { label: 'Цього місяця', threads: [] },
+            earlier: { label: 'Раніше', threads: [] }
+        }
+
+        threads.forEach(thread => {
+            const threadDate = new Date(threadTimestamp(thread))
+            const threadDay = new Date(threadDate.getFullYear(), threadDate.getMonth(), threadDate.getDate())
+
+            if (threadDay.getTime() === today.getTime()) {
+                groups.today.threads.push(thread)
+            } else if (threadDay.getTime() === yesterday.getTime()) {
+                groups.yesterday.threads.push(thread)
+            } else if (threadDate >= thisMonthStart) {
+                groups.thisMonth.threads.push(thread)
+            } else {
+                groups.earlier.threads.push(thread)
+            }
+        })
+
+        // Return only groups that have threads
+        return Object.values(groups).filter(group => group.threads.length > 0)
+    }
+
     async function fetchThreads() {
         if (!isAuthenticated) {
             setThreads([])
@@ -341,19 +373,26 @@ export default function AIChat() {
                     <div className="mb-3 flex items-center justify-between">
                         <button type="button" onClick={handleNewChat} className="text-xs font-medium hover:underline" style={{ color: 'var(--accent)' }}>Новий чат</button>
                     </div>
-                    <div className="grid gap-1.5">
+                    <div className="space-y-3">
                         {threads && threads.length > 0 ? (
-                            threads.map((t) => (
-                                <div key={t.id} className="thread-item">
-                                    <button type="button" onClick={() => { setDrawerOpen(false); selectThread(t.id) }} className={`thread-item__title ${activeId === t.id ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}`} style={{ color: '#4B5563' }}>
-                                        {t.chat_name || 'New Chat'}
-                                    </button>
-                                    <button type="button" onClick={() => handleRenameThread(t.id, t.chat_name)} title="Перейменувати" className="thread-item__icon" aria-label="Перейменувати">
-                                        <Pencil size={16} />
-                                    </button>
-                                    <button type="button" onClick={() => handleDeleteThread(t.id)} title="Видалити" className="thread-item__icon" aria-label="Видалити">
-                                        <Trash2 size={16} />
-                                    </button>
+                            groupThreadsByDate(threads).map((group, groupIdx) => (
+                                <div key={groupIdx} className="space-y-1.5">
+                                    <div className="text-xs font-medium px-2 py-1" style={{ color: '#6B7280' }}>
+                                        {group.label}
+                                    </div>
+                                    {group.threads.map((t) => (
+                                        <div key={t.id} className="thread-item">
+                                            <button type="button" onClick={() => { setDrawerOpen(false); selectThread(t.id) }} className={`thread-item__title ${activeId === t.id ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}`} style={{ color: '#4B5563' }}>
+                                                {t.chat_name || 'New Chat'}
+                                            </button>
+                                            <button type="button" onClick={() => handleRenameThread(t.id, t.chat_name)} title="Перейменувати" className="thread-item__icon" aria-label="Перейменувати">
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button type="button" onClick={() => handleDeleteThread(t.id)} title="Видалити" className="thread-item__icon" aria-label="Видалити">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
                             ))
                         ) : (
@@ -373,21 +412,28 @@ export default function AIChat() {
                             <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Останні запити</div>
                             <button type="button" onClick={handleNewChat} className="text-xs font-medium hover:underline" style={{ color: 'var(--accent)' }}>Новий чат</button>
                         </div>
-                        <div className="">
+                        <div className="space-y-4">
                             {threads && threads.length > 0 ? (
-                                threads.map((t) => (
-                                    <div key={t.id} className={`thread-item rounded-md max-w-[100%] ${activeId === t.id ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}`}>
-                                        <button type="button" onClick={() => selectThread(t.id)} className={`thread-item__title`} style={{ color: '#4B5563' }}>
-                                            {t.chat_name || 'New Chat'}
-                                        </button>
-                                        <div className="thread-button-group">
-                                            <button type="button" onClick={() => handleRenameThread(t.id, t.chat_name)} title="Перейменувати" className="thread-item__icon" aria-label="Перейменувати">
-                                                <Pencil size={16} />
-                                            </button>
-                                            <button type="button" onClick={() => handleDeleteThread(t.id)} title="Видалити" className="thread-item__delete-icon" aria-label="Видалити">
-                                                <Trash2 size={16} />
-                                            </button>
+                                groupThreadsByDate(threads).map((group, groupIdx) => (
+                                    <div key={groupIdx} className="space-y-1.5">
+                                        <div className="text-xs font-medium px-2 py-1 border-b border-gray-100" style={{ color: '#6B7280' }}>
+                                            {group.label}
                                         </div>
+                                        {group.threads.map((t) => (
+                                            <div key={t.id} className={`thread-item rounded-md max-w-[100%] ${activeId === t.id ? 'bg-gray-100 font-semibold' : 'hover:bg-gray-50'}`}>
+                                                <button type="button" onClick={() => selectThread(t.id)} className={`thread-item__title`} style={{ color: '#4B5563' }}>
+                                                    {t.chat_name || 'New Chat'}
+                                                </button>
+                                                <div className="thread-button-group">
+                                                    <button type="button" onClick={() => handleRenameThread(t.id, t.chat_name)} title="Перейменувати" className="thread-item__icon" aria-label="Перейменувати">
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button type="button" onClick={() => handleDeleteThread(t.id)} title="Видалити" className="thread-item__delete-icon" aria-label="Видалити">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 ))
                             ) : (

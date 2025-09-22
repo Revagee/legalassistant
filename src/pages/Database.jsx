@@ -5,27 +5,79 @@ import { generateDocxFile } from '../lib/docxGen.js'
 
 // Офіційні назви і ідентифікатори (як у вашому списку)
 const LEGAL_CODES = {
-    'Конституція України': { id: '254к/96-вр' },
-    'Цивільний кодекс України': { id: '435-15' },
-    'Кримінальний кодекс України': { id: '2341-14' },
-    'Сімейний кодекс України': { id: '2947-14' },
-    'Кодекс законів про працю України': { id: '322-08' },
-    'Кримінальний процесуальний кодекс України': { id: '4651-17' },
-    'Цивільний процесуальний кодекс України': { id: '1618-15' },
-    'Господарський процесуальний кодекс України': { id: '1798-12' },
-    'Кодекс України про адміністративні правопорушення': { id: '80731-10' },
-    'Кодекс адміністративного судочинства України': { id: '2747-15' },
-    'Податковий кодекс України': { id: '2755-17' },
-    'Митний кодекс України': { id: '4495-17' },
-    'Земельний кодекс України': { id: '2768-14' },
-    'Водний кодекс України': { id: '213/95-вр' },
-    'Лісовий кодекс України': { id: '3852-12' },
-    'Повітряний кодекс України': { id: '3393-17' },
-    'Бюджетний кодекс України': { id: '2456-17' },
-    'Виборчий кодекс України': { id: '396-20' },
-    'Кодекс України з процедур банкрутства': { id: '2597-19' },
-    'Житловий кодекс України': { id: '5464-10' }
-}
+    "Бюджетний кодекс України": {
+      "id": "Бюджетний_кодекс_України_Кодекс_України_№_2456_VI_від_08_07_2010"
+    },
+    "Виборчий кодекс України Кодекс України № 396 IX від 19 12 2019 d491286": {
+      "id": "Виборчий_кодекс_України_Кодекс_України_№_396_IX_від_19_12_2019_d491286"
+    },
+    "Водний кодекс України": {
+      "id": "Водний_кодекс_України_Кодекс_України_№_213_95_ВР_від_06_06_1995"
+    },
+    "Господарський процесуальний кодекс України": {
+      "id": "Господарський_процесуальний_кодекс_України_Кодекс_України_№_1798"
+    },
+    "Житловий Кодекс України": {
+      "id": "Житловий_Кодекс_України_Кодекс_України_№_5464_X_від_30_06_1983_d23508"
+    },
+    "Земельний кодекс України": {
+      "id": "Земельний_кодекс_України_Кодекс_України_№_2768_III_від_25_10_2001"
+    },
+    "Кодекс України з процедур банкрутства": {
+      "id": "Кодекс_України_з_процедур_банкрутства_Кодекс_України_№_2597_VIII"
+    },
+    "Кодекс України про адміністративні правопорушення (статті 1-212)": {
+        "id": "Кодекс_України_про_адміністративні_правопорушення_статті…_Кодекс"
+      },
+    "Кодекс України про адміністративні правопорушення (статті 213-330)": {
+      "id": "Кодекс_України_про_адміністративні_правопорушення_статті…_Кодекс (2)"
+    },
+    "Кодекс адміністративного судочинства України": {
+      "id": "Кодекс_адміністративного_судочинства_України_Кодекс_України_№_2747"
+    },
+    "Кодекс законів про працю України": {
+      "id": "Кодекс_законів_про_працю_України_Кодекс_України_№_322_VIII_від_10"
+    },
+    "Кодекс торговельного мореплавства України": {
+      "id": "Кодекс_торговельного_мореплавства_України_Кодекс_України_№_176_95"
+    },
+    "Кодекс цивільного захисту України": {
+      "id": "Кодекс_цивільного_захисту_України_Кодекс_України_№_5403_VI_від_02"
+    },
+    "Кримінальний кодекс України": {
+      "id": "Кримінальний_кодекс_України_Кодекс_України_№_2341_III_від_05_04"
+    },
+    "Кримінальний процесуальний кодекс України": {
+      "id": "Кримінальний_процесуальний_кодекс_України_Кодекс_України_№_4651"
+    },
+    "Кримінально виконавчий кодекс України": {
+      "id": "Кримінально_виконавчий_кодекс_України_Кодекс_України_№_1129_IV_від"
+    },
+    "Лісовий кодекс України": {
+      "id": "Лісовий_кодекс_України_Кодекс_України_№_3852_XII_від_21_01_1994"
+    },
+    "Митний кодекс України": {
+      "id": "Митний_кодекс_України_Кодекс_України_№_4495_VI_від_13_03_2012_d377274"
+    },
+    "Повітряний кодекс України": {
+      "id": "Повітряний_кодекс_України_Кодекс_України_№_3393_VI_від_19_05_2011"
+    },
+    "Податковий кодекс України": {
+      "id": "Податковий_кодекс_України_Кодекс_України_№_2755_VI_від_02_12_2010"
+    },
+    "Про надра Кодекс України": {
+      "id": "Про_надра_Кодекс_України_№_132_94_ВР_від_27_07_1994_d18971_20250117"
+    },
+    "Сімейний кодекс України": {
+      "id": "Сімейний_кодекс_України_Кодекс_України_№_2947_III_від_10_01_2002"
+    },
+    "Цивільний кодекс України": {
+      "id": "Цивільний_кодекс_України_Кодекс_України_№_435_IV_від_16_01_2003"
+    },
+    "Цивільний процесуальний кодекс України": {
+      "id": "Цивільний_процесуальний_кодекс_України_Кодекс_України_№_1618_IV"
+    }
+  }
 
 function escapeRegExp(s) {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -35,14 +87,23 @@ function idToLocalFilename(id) {
     return String(id).replace(/\//g, '_')
 }
 
+function buildCodesUrl(codeId, ext) {
+    const base = encodeURIComponent(idToLocalFilename(codeId))
+    return `/codes/${base}.${ext}`
+}
+
 async function fetchCodeHtml(codeId) {
-    const res = await fetch(`/codes/${idToLocalFilename(codeId)}.html`)
+    // Пробуем .htm, затем .html
+    let res = await fetch(buildCodesUrl(codeId, 'htm'))
+    if (!res.ok) {
+        res = await fetch(buildCodesUrl(codeId, 'html'))
+    }
     if (!res.ok) throw new Error('Не вдалося завантажити документ')
     return await res.text()
 }
 
 async function fetchCodeJson(codeId) {
-    const res = await fetch(`/codes/${idToLocalFilename(codeId)}.json`)
+    const res = await fetch(buildCodesUrl(codeId, 'json'))
     if (!res.ok) throw new Error('no-json')
     return await res.json()
 }
@@ -113,7 +174,11 @@ export default function Database() {
 
         setPreviewLoading(true)
         try {
-            const res = await fetch(`/codes/${idToLocalFilename(codeId)}.html`)
+            // Пробуем .htm, затем .html
+            let res = await fetch(buildCodesUrl(codeId, 'htm'))
+            if (!res.ok) {
+                res = await fetch(buildCodesUrl(codeId, 'html'))
+            }
             if (!res.ok) throw new Error('Не вдалося завантажити документ')
             const html = await res.text()
             setPreviewHtml(html)
@@ -221,7 +286,7 @@ export default function Database() {
         setKeywordResults([])
         setArticleContent('')
         setSearchPerformed(true)
-        if (!selectedName) { setError('Оберіть кодекс'); return }
+        if (!selectedName) { setError('Оберіть документ'); return }
         if (!queryValue.trim()) { setError('Вкажіть номер статті'); return }
         setLoading(true)
         try {
@@ -251,7 +316,7 @@ export default function Database() {
         setArticleContent('')
         setKeywordResults([])
         setSearchPerformed(true)
-        if (!selectedName) { setError('Оберіть кодекс'); return }
+        if (!selectedName) { setError('Оберіть документ'); return }
         if (!queryValue.trim()) { setError('Вкажіть ключові слова'); return }
         setLoading(true)
         try {
@@ -382,7 +447,7 @@ export default function Database() {
                                         <Switch.Root
                                             checked={autoAll}
                                             onCheckedChange={setAutoAll}
-                                            aria-label="Автоматичний пошук по всіх кодексах"
+                                            aria-label="Автоматичний пошук по всіх документах"
                                             className="group relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full bg-gray-200 outline-none transition-colors data-[state=checked]:bg-[var(--accent)]"
                                         >
                                             <Switch.Thumb className="pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow transition-transform will-change-transform group-data-[state=checked]:translate-x-[22px]" />
@@ -392,7 +457,7 @@ export default function Database() {
 
                                     {!autoAll && (
                                         <div>
-                                            <label className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Кодекс</label>
+                                            <label className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Документ</label>
                                             <div className="mt-1">
                                                 <Select.Root value={selectedName} onValueChange={setSelectedName}>
                                                     <Select.Trigger className="w-full" />
@@ -462,7 +527,7 @@ export default function Database() {
                                     articleContent={articleContent}
                                     keywordResults={keywordResults}
                                     query={queryValue}
-                                    selectedName={autoAll ? 'Усі кодекси' : selectedName}
+                                    selectedName={autoAll ? 'Усі документи' : selectedName}
                                     onOpenPreview={loadDocumentPreview}
                                     onScrollToArticle={scrollToArticleInPreview}
                                     isMobile={isMobile}
@@ -532,7 +597,7 @@ function SearchResults({ articleContent, keywordResults, query, selectedName, on
                         Результат пошуку статті
                     </h3>
                     <p className="text-xs mb-3" style={{ color: 'var(--muted)' }}>
-                        Кодекс: {selectedName}. Запит: {query}
+                        Документ: {selectedName}. Запит: {query}
                     </p>
                     <pre className="text-xs overflow-auto p-3 rounded border mb-3" style={{
                         whiteSpace: 'pre-wrap',
@@ -683,7 +748,7 @@ function CodesTable({ codes, onSelectCode }) {
     return (
         <div className="h-full flex flex-col">
             <div className="p-4 border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
-                <h2 className="text-lg font-semibold" style={{ color: 'var(--accent)' }}>Офіційні документи</h2>
+                <h2 className="text-lg font-semibold" style={{ color: 'var(--accent)' }}>Офіційні документи ({codeEntries.length})</h2>
                 <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>Натисніть на документ для перегляду</p>
             </div>
             <div className="flex-1 overflow-auto">
@@ -708,7 +773,7 @@ function CodesTable({ codes, onSelectCode }) {
                             >
                                 <td className="p-4">
                                     <div className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{name}</div>
-                                    <div className="text-xs" style={{ color: 'var(--muted)' }}>ID: {meta.id}</div>
+                                    {/* <div className="text-xs" style={{ color: 'var(--muted)' }}>ID: {meta.id}</div> */}
                                 </td>
                                 <td className="p-4">
                                     <button
@@ -740,14 +805,14 @@ function MobileCodesGrid({ codes, onSelectCode, showTitle = true }) {
             {showTitle && (
                 <div>
                     <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--accent)' }}>
-                        Офіційні документи
+                        Офіційні документи ({codeEntries.length})
                     </h3>
                 </div>
             )}
             {!showTitle && (
                 <div>
                     <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--accent)' }}>
-                        Офіційні документи
+                        Офіційні документи ({codeEntries.length})
                     </h3>
                 </div>
             )}

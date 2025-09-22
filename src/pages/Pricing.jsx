@@ -51,10 +51,6 @@ export default function Pricing() {
                         )}
                     </div>
                 ))}
-
-                {!loading && !error && (
-                    <p className="text-xs text-gray-600">Оплата приймається в гривні за курсом банку/платіжної системи на момент оплати.</p>
-                )}
             </div>
         </div>
     )
