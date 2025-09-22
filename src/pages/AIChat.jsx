@@ -60,12 +60,9 @@ export default function AIChat() {
         }
         const data = await ChatAPI.getThreadMessages(threadId)
         // Expecting array of { type: 'human'|'ai', content: string }
-        const normalized = Array.isArray(data) ? data.map((m) => ({
-            type: (m.type === 'human' || m.type === 'user') ? 'human' : 'ai',
-            content: String(m.content || '')
-        })) : []
-        setMessages(normalized)
-        return normalized
+        setThreadReaction(data.reaction)
+        setMessages(data.messages)
+        return data.messages
     }
 
     function closeStream() {
@@ -173,7 +170,15 @@ export default function AIChat() {
         if (!isAuthenticated || !activeId) return
         try {
             await ChatAPI.reactThread(activeId, reactionType)
-            setThreadReaction(Number(reactionType))
+            // null - нет реакции
+            // 0 - диз
+            // 1 - лайк
+            if (reactionType !== threadReaction) {
+                setThreadReaction(reactionType) // Устанавливаем новую реакцию
+            }
+            else {
+                setThreadReaction(null) // Убираем реакцию при повторном клике
+            }
         } catch { /* ignore */ }
     }
 

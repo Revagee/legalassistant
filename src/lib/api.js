@@ -176,7 +176,7 @@ export const ChatAPI = {
     },
     async reactThread(threadId, reactionType) {
         // reactionType: 0 - dislike, 1 - like
-        return apiRequest('/chat/reaction', { method: 'POST', body: { thread_id: threadId, reaction_type: Number(reactionType) } })
+        return apiRequest('/thread/reaction', { method: 'POST', body: { thread_id: threadId, reaction_type: Number(reactionType) } })
     },
 };
 
