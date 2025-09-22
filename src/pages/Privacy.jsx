@@ -6,7 +6,7 @@ export default function Privacy() {
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Політика конфіденційності</h1>
             <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>Останнє оновлення: {new Date().toLocaleDateString('uk-UA')}</p>
 
-            <div className="mt-6 space-y-5" style={{ color: 'var(--ink)' }}>
+            <div className="mt-6 space-y-5 text-page-section-container">
                 <section>
                     <h2 className="text-lg font-semibold" style={{ color: 'var(--ink)' }}>1. Хто ми</h2>
                     <p className="mt-2 text-sm">«Юридичний помічник» — веб‑застосунок для створення юридичних документів, роботи з правовою базою та взаємодії з Юридичним ШІ. Ми поважаємо вашу приватність і обробляємо дані відповідально.</p>

@@ -90,6 +90,12 @@ h3{font-family:'Playfair Display', 'Source Serif Pro', Georgia, 'Times New Roman
 .container{max-width:1200px;margin:0 auto;padding:20px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px}
+.text-page-section-container section {
+    margin-bottom: 28px;
+}
+.text-page-section-container section h2 {
+    color: var(--accent);
+}
 
 /* Buttons */
 .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;border:1px solid var(--primary);text-decoration:none;cursor:pointer;transition:all .15s ease}

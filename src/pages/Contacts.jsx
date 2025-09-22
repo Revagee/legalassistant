@@ -6,7 +6,7 @@ export default function Contacts() {
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Контакти</h1>
             <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>Звʼяжіться з нами з будь‑яких питань щодо сервісу</p>
 
-            <div className="mt-6 space-y-5" style={{ color: 'var(--ink)' }}>
+            <div className="mt-6 space-y-5 text-page-section-container">
                 <section>
                     <h2 className="text-lg font-semibold">Назва магазину</h2>
                     <p className="mt-2 text-sm">{merchant.shopName}</p>

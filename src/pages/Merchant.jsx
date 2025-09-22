@@ -6,7 +6,7 @@ export default function Merchant() {
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: 'var(--accent)' }}>Інформація про власника</h1>
             <p className="mt-2 text-sm" style={{ color: 'var(--muted)' }}>Одержувач оплати та відшкодувань</p>
 
-            <div className="mt-6 space-y-5" style={{ color: 'var(--ink)' }}>
+            <div className="mt-6 space-y-5 text-page-section-container">
                 <section>
                     <h2 className="text-lg font-semibold">Юридична інформація</h2>
                     <ul className="mt-2 text-sm list-disc pl-5">
