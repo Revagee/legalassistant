@@ -1,10 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Eye, Download, Filter, X } from 'lucide-react'
 
-function DocxPreview({ url }) {
+function toPdfPath(filePath) {
+    try {
+        const lastSlash = String(filePath || '').lastIndexOf('/')
+        if (lastSlash === -1) return filePath
+        const dir = filePath.slice(0, lastSlash)
+        const name = filePath.slice(lastSlash + 1)
+        const base = name.replace(/\.[^/.]+$/, '')
+        return `${dir}/pdf/${base}.pdf`
+    } catch {
+        return filePath
+    }
+}
+
+function DocxPreview({ url, onPagesCountChange }) {
     const containerRef = useRef(null)
     const viewportRef = useRef(null)
     const outerRef = useRef(null)
+    const [pagesCount, setPagesCount] = useState(0)
 
     useEffect(() => {
         let canceled = false
@@ -51,18 +65,26 @@ function DocxPreview({ url }) {
 
             // Подсчет количества страниц и высоты одной страницы
             const pages = Array.from(contentEl.children).filter((el) => el.clientHeight && el.clientWidth)
-            const pagesCount = pages.length
-            if (pagesCount > 0) {
+            const currentPagesCount = pages.length
+            if (currentPagesCount > 0) {
                 const totalHeight = pages.reduce((acc, el) => acc + el.clientHeight, 0)
-                const pageHeightOriginal = totalHeight / pagesCount
+                const pageHeightOriginal = totalHeight / currentPagesCount
                 const pageHeightScaled = pageHeightOriginal * scale
                 // Быстрый доступ при необходимости
-                viewportEl.dataset.pagesCount = String(pagesCount)
+                viewportEl.dataset.pagesCount = String(currentPagesCount)
                 viewportEl.dataset.pageHeight = String(Math.round(pageHeightOriginal))
                 viewportEl.dataset.pageHeightScaled = String(Math.round(pageHeightScaled))
-                viewportEl.dataset.pagePercent = String(100 / pagesCount)
+                viewportEl.dataset.pagePercent = String(100 / currentPagesCount)
+
+                // Обновляем состояние количества страниц
+                if (currentPagesCount !== pagesCount) {
+                    setPagesCount(currentPagesCount)
+                    if (onPagesCountChange) {
+                        onPagesCountChange(currentPagesCount)
+                    }
+                }
                 // Для отладки/проверки
-                // console.debug('DOCX preview pages:', { pagesCount, pageHeightOriginal, pageHeightScaled })
+                // console.debug('DOCX preview pages:', { currentPagesCount, pageHeightOriginal, pageHeightScaled })
             }
         }
 
@@ -112,6 +134,16 @@ function DocxPreview({ url }) {
     )
 }
 
+function PdfPreview({ url }) {
+    return (
+        <iframe
+            title="pdf-preview"
+            src={`${url}#toolbar=1&view=FitH`}
+            className="w-full h-full"
+        />
+    )
+}
+
 export default function Documents() {
     const [manifest, setManifest] = useState(null)
     const [query, setQuery] = useState('')
@@ -120,6 +152,13 @@ export default function Documents() {
     const [filtersOpen, setFiltersOpen] = useState(false)
     const [categoryFilter, setCategoryFilter] = useState([]) // array of category keys
     const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200))
+    const [documentPagesCount, setDocumentPagesCount] = useState(0)
+    const [pdfAvailable, setPdfAvailable] = useState(false)
+
+    // Сбрасываем счетчик страниц при смене документа
+    useEffect(() => {
+        setDocumentPagesCount(0)
+    }, [selected])
 
     useEffect(() => {
         fetch('/files/manifest.json', { cache: 'no-store' })
@@ -127,6 +166,18 @@ export default function Documents() {
             .then(setManifest)
             .catch((e) => console.error('Failed to load manifest', e))
     }, [])
+
+    // Проверяем наличие PDF-файла с тем же именем в подпапке pdf
+    const pdfUrl = useMemo(() => (selected ? toPdfPath(selected.path) : ''), [selected])
+    useEffect(() => {
+        let cancelled = false
+        setPdfAvailable(false)
+        if (!pdfUrl) return
+        fetch(pdfUrl, { method: 'HEAD', cache: 'no-store' })
+            .then((r) => { if (!cancelled) setPdfAvailable(r.ok) })
+            .catch(() => { if (!cancelled) setPdfAvailable(false) })
+        return () => { cancelled = true }
+    }, [pdfUrl])
 
     useEffect(() => {
         const onResize = () => setViewportWidth(window.innerWidth)
@@ -325,16 +376,25 @@ export default function Documents() {
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <div className="text-sm font-semibold text-gray-900 break-words">{selected.name}</div>
-                                    <div className="text-xs text-gray-500 break-all">{selected.filename}</div>
+                                    <div className="text-xs text-gray-500 break-all">
+                                        {selected.filename}
+                                        {selected.ext === 'docx' && documentPagesCount > 0 && (
+                                            <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
+                                                {documentPagesCount} {documentPagesCount === 1 ? 'сторінка' : documentPagesCount > 1 && documentPagesCount < 5 ? 'сторінки' : 'сторінок'}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="shrink-0 inline-flex items-center gap-2">
-                                    <button type="button" onClick={() => { window.open(selected.path, 'thiswindow') }} className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"><Download size={14} /></button>
+                                    <a type="button" href={selected.path} download onClick={(e) => e.stopPropagation()} className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"><Download size={14} /></a>
                                     <button type="button" onClick={() => setSelected(null)} className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"><X size={14} /></button>
                                 </div>
                             </div>
                             <div className="mt-3 rounded-md border border-gray-100 overflow-hidden" style={{ height: isDesktop ? 'calc(100% - 48px)' : '60vh', width: '100%', maxWidth: 900, marginLeft: 'auto', marginRight: 'auto' }}>
-                                {selected.ext === 'docx' ? (
-                                    <DocxPreview url={selected.path} />
+                                {pdfAvailable ? (
+                                    <PdfPreview url={pdfUrl} />
+                                ) : selected.ext === 'docx' ? (
+                                    <DocxPreview url={selected.path} onPagesCountChange={setDocumentPagesCount} />
                                 ) : previewExternalUrl ? (
                                     <iframe title="preview" src={previewExternalUrl} className="w-full h-full" />
                                 ) : (

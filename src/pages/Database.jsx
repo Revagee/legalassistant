@@ -152,6 +152,7 @@ export default function Database() {
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [searchPerformed, setSearchPerformed] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
+    const [mobileTab, setMobileTab] = useState('search') // 'search' | 'codes'
     const previewRef = useRef(null)
 
     // Проверка мобильного устройства
@@ -417,141 +418,179 @@ export default function Database() {
             <div className="flex-1 flex overflow-hidden">
                 {/* Левая колонка - поиск и результаты */}
                 {!isFullscreen && (
-                    <div className={`${isMobile ? 'w-full' : 'w-1/3'} border-r flex flex-col`} style={{ borderColor: 'var(--border)' }}>
+                    <div className={`${isMobile ? 'w-full' : 'w-1/3'} ${!isMobile ? 'border-r' : ''} flex flex-col`} style={{ borderColor: 'var(--border)' }}>
                         {/* Заголовок и форма поиска */}
                         <div className="p-4 border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
                             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4" style={{ color: 'var(--accent)' }}>Законодавча база</h1>
-                            <form onSubmit={onSubmitUnified}>
-                                <div className="space-y-4">
-                                    <div>
-                                        <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Режим пошуку</span>
-                                        <RadioCards.Root
-                                            value={mode}
-                                            onValueChange={(val) => {
-                                                if (!val) return
-                                                if (autoAll && val === 'article') return
-                                                setMode(val)
-                                            }}
-                                            columns={{ initial: '2' }}
-                                            className="mt-2"
-                                        >
-                                            <RadioCards.Item disabled={autoAll} value="article" style={{ color: 'white' }}>
-                                                <div className="text-sm font-medium">Стаття</div>
-                                            </RadioCards.Item>
-                                            <RadioCards.Item value="keyword" style={{ color: 'white' }}>
-                                                <div className="text-sm font-medium">Ключові слова</div>
-                                            </RadioCards.Item>
-                                        </RadioCards.Root>
-                                    </div>
 
-                                    <div className="flex items-center gap-3">
-                                        <Switch.Root
-                                            checked={autoAll}
-                                            onCheckedChange={setAutoAll}
-                                            aria-label="Автоматичний пошук по всіх документах"
-                                            className="group relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full bg-gray-200 outline-none transition-colors data-[state=checked]:bg-[var(--accent)]"
-                                        >
-                                            <Switch.Thumb className="pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow transition-transform will-change-transform group-data-[state=checked]:translate-x-[22px]" />
-                                        </Switch.Root>
-                                        <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Автоматично</span>
-                                    </div>
-
-                                    {!autoAll && (
-                                        <div>
-                                            <label className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Документ</label>
-                                            <div className="mt-1">
-                                                <Select.Root value={selectedName} onValueChange={setSelectedName}>
-                                                    <Select.Trigger className="w-full" />
-                                                    <Select.Content>
-                                                        {names.map((n) => (
-                                                            <Select.Item key={n} value={n}>{n}</Select.Item>
-                                                        ))}
-                                                    </Select.Content>
-                                                </Select.Root>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <label className="block text-sm font-semibold" style={{ color: 'var(--ink)' }}>
-                                            {mode === 'article' ? 'Номер статті' : 'Ключові слова'}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={queryValue}
-                                            onChange={e => setQueryValue(e.target.value)}
-                                            placeholder={mode === 'article' ? 'напр., 130 або 130-1 або 130а' : 'напр., неустойка, аліменти, 625'}
-                                            className="mt-1 w-full rounded-md px-3 py-2 text-sm focus:outline-none"
-                                            style={{
-                                                background: 'var(--surface)',
-                                                color: 'var(--ink)',
-                                                border: '1px solid var(--border)',
-                                                boxShadow: 'none',
-                                                outline: '2px solid transparent'
-                                            }}
-                                            onFocus={(e) => {
-                                                e.currentTarget.style.outline = `2px solid var(--ring)`
-                                                e.currentTarget.style.outlineOffset = '2px'
-                                            }}
-                                            onBlur={(e) => {
-                                                e.currentTarget.style.outline = '2px solid transparent'
-                                            }}
-                                        />
-                                    </div>
-
+                            {/* Переключатель вкладок для мобильных устройств */}
+                            {isMobile && (
+                                <div className="flex mb-4 p-1 rounded-lg" style={{ background: 'var(--border)' }}>
                                     <button
-                                        className="w-full rounded-md px-4 py-2 text-sm font-medium hover:opacity-95"
-                                        style={{ background: 'var(--accentBg)', color: 'var(--btnText)' }}
-                                        type="submit"
+                                        type="button"
+                                        onClick={() => setMobileTab('search')}
+                                        className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${mobileTab === 'search'
+                                            ? 'shadow-sm'
+                                            : 'hover:opacity-80'
+                                            }`}
+                                        style={{
+                                            background: mobileTab === 'search' ? 'var(--surface)' : 'transparent',
+                                            color: mobileTab === 'search' ? 'var(--accent)' : 'var(--muted)'
+                                        }}
                                     >
                                         Пошук
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMobileTab('codes')}
+                                        className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${mobileTab === 'codes'
+                                            ? 'shadow-sm'
+                                            : 'hover:opacity-80'
+                                            }`}
+                                        style={{
+                                            background: mobileTab === 'codes' ? 'var(--surface)' : 'transparent',
+                                            color: mobileTab === 'codes' ? 'var(--accent)' : 'var(--muted)'
+                                        }}
+                                    >
+                                        Кодекси
+                                    </button>
                                 </div>
-                            </form>
+                            )}
+
+                            {/* Содержимое вкладки поиска (всегда показываем на десктопе, на мобильном только если выбрана вкладка поиска) */}
+                            {(!isMobile || mobileTab === 'search') && (
+                                <form onSubmit={onSubmitUnified}>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Режим пошуку</span>
+                                            <RadioCards.Root
+                                                value={mode}
+                                                onValueChange={(val) => {
+                                                    if (!val) return
+                                                    if (autoAll && val === 'article') return
+                                                    setMode(val)
+                                                }}
+                                                columns={{ initial: '2' }}
+                                                className="mt-2"
+                                            >
+                                                <RadioCards.Item disabled={autoAll} value="article" style={{ color: 'white' }}>
+                                                    <div className="text-sm font-medium">Стаття</div>
+                                                </RadioCards.Item>
+                                                <RadioCards.Item value="keyword" style={{ color: 'white' }}>
+                                                    <div className="text-sm font-medium">Ключові слова</div>
+                                                </RadioCards.Item>
+                                            </RadioCards.Root>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <Switch.Root
+                                                checked={autoAll}
+                                                onCheckedChange={setAutoAll}
+                                                aria-label="Автоматичний пошук по всіх документах"
+                                                className="group relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full bg-gray-200 outline-none transition-colors data-[state=checked]:bg-[var(--accent)]"
+                                            >
+                                                <Switch.Thumb className="pointer-events-none block h-5 w-5 translate-x-0.5 rounded-full bg-white shadow transition-transform will-change-transform group-data-[state=checked]:translate-x-[22px]" />
+                                            </Switch.Root>
+                                            <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Автоматично</span>
+                                        </div>
+
+                                        {!autoAll && (
+                                            <div>
+                                                <label className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Документ</label>
+                                                <div className="mt-1">
+                                                    <Select.Root value={selectedName} onValueChange={setSelectedName}>
+                                                        <Select.Trigger className="w-full" />
+                                                        <Select.Content>
+                                                            {names.map((n) => (
+                                                                <Select.Item key={n} value={n}>{n}</Select.Item>
+                                                            ))}
+                                                        </Select.Content>
+                                                    </Select.Root>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <label className="block text-sm font-semibold" style={{ color: 'var(--ink)' }}>
+                                                {mode === 'article' ? 'Номер статті' : 'Ключові слова'}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={queryValue}
+                                                onChange={e => setQueryValue(e.target.value)}
+                                                placeholder={mode === 'article' ? 'напр., 130 або 130-1 або 130а' : 'напр., неустойка, аліменти, 625'}
+                                                className="mt-1 w-full rounded-md px-3 py-2 text-sm focus:outline-none"
+                                                style={{
+                                                    background: 'var(--surface)',
+                                                    color: 'var(--ink)',
+                                                    border: '1px solid var(--border)',
+                                                    boxShadow: 'none',
+                                                    outline: '2px solid transparent'
+                                                }}
+                                                onFocus={(e) => {
+                                                    e.currentTarget.style.outline = `2px solid var(--ring)`
+                                                    e.currentTarget.style.outlineOffset = '2px'
+                                                }}
+                                                onBlur={(e) => {
+                                                    e.currentTarget.style.outline = '2px solid transparent'
+                                                }}
+                                            />
+                                        </div>
+
+                                        <button
+                                            className="w-full rounded-md px-4 py-2 text-sm font-medium hover:opacity-95"
+                                            style={{ background: 'var(--accentBg)', color: 'var(--btnText)' }}
+                                            type="submit"
+                                        >
+                                            Пошук
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
                         </div>
 
                         {/* Результаты поиска или заглушка */}
                         <div className="flex-1 overflow-auto p-4">
-                            {loading && <p className="text-sm text-center" style={{ color: 'var(--muted)' }}>Завантаження…</p>}
-                            {error && <p className="text-sm text-center" style={{ color: '#ef4444' }}>{error}</p>}
+                            {/* Вкладка поиска */}
+                            {(!isMobile || mobileTab === 'search') && (
+                                <>
+                                    {loading && <p className="text-sm text-center" style={{ color: 'var(--muted)' }}>Завантаження…</p>}
+                                    {error && <p className="text-sm text-center" style={{ color: '#ef4444' }}>{error}</p>}
 
-                            {!loading && !error && !searchPerformed && (
-                                <div className="flex items-center justify-center h-full">
-                                    <p className="text-sm italic text-center" style={{ color: 'var(--muted)' }}>
-                                        Тут відобразяться результати пошуку
-                                    </p>
-                                </div>
-                            )}
-
-                            {searchPerformed && !loading && (
-                                <SearchResults
-                                    articleContent={articleContent}
-                                    keywordResults={keywordResults}
-                                    query={queryValue}
-                                    selectedName={autoAll ? 'Усі документи' : selectedName}
-                                    onOpenPreview={loadDocumentPreview}
-                                    onScrollToArticle={scrollToArticleInPreview}
-                                    isMobile={isMobile}
-                                    setIsFullscreen={setIsFullscreen}
-                                    legalCodes={LEGAL_CODES}
-                                />
-                            )}
-
-                            {/* Мобильная версия: список всех кодексов под результатами поиска */}
-                            {isMobile && (
-                                <div className="mt-6">
-                                    {searchPerformed && (keywordResults.length > 0 || articleContent) && (
-                                        <hr className="my-4" style={{ borderColor: 'var(--border)' }} />
+                                    {!loading && !error && !searchPerformed && (
+                                        <div className="flex items-center justify-center h-full">
+                                            <p className="text-sm italic text-center" style={{ color: 'var(--muted)' }}>
+                                                Тут відобразяться результати пошуку
+                                            </p>
+                                        </div>
                                     )}
-                                    <MobileCodesGrid
-                                        codes={LEGAL_CODES}
-                                        onSelectCode={(codeId, codeName) => {
-                                            loadDocumentPreview(codeId, codeName)
-                                            setIsFullscreen(true)
-                                        }}
-                                        showTitle={!searchPerformed || !(keywordResults.length > 0 || articleContent)}
-                                    />
-                                </div>
+
+                                    {searchPerformed && !loading && (
+                                        <SearchResults
+                                            articleContent={articleContent}
+                                            keywordResults={keywordResults}
+                                            query={queryValue}
+                                            selectedName={autoAll ? 'Усі документи' : selectedName}
+                                            onOpenPreview={loadDocumentPreview}
+                                            onScrollToArticle={scrollToArticleInPreview}
+                                            isMobile={isMobile}
+                                            setIsFullscreen={setIsFullscreen}
+                                            legalCodes={LEGAL_CODES}
+                                        />
+                                    )}
+                                </>
+                            )}
+
+                            {/* Вкладка кодексов для мобильных устройств */}
+                            {isMobile && mobileTab === 'codes' && (
+                                <MobileCodesGrid
+                                    codes={LEGAL_CODES}
+                                    onSelectCode={(codeId, codeName) => {
+                                        loadDocumentPreview(codeId, codeName)
+                                        setIsFullscreen(true)
+                                    }}
+                                    showTitle={true}
+                                />
                             )}
                         </div>
                     </div>
@@ -687,11 +726,26 @@ function SearchResults({ articleContent, keywordResults, query, selectedName, on
 
 // Компонент для превью документа
 function DocumentPreview({ codeName, html, loading, onClose, onDownload, onFullscreen, previewRef, isFullscreen }) {
+    const [zoom, setZoom] = useState(100)
+    const [isMobileDevice, setIsMobileDevice] = useState(false)
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobileDevice(window.innerWidth < 768)
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+
     // Изолируем стили документа через iframe и задаем адаптивность
     const injectedStyles = `
         <style>
           html, body { margin: 0; padding: 0; }
-          body, #article { max-width: 100% !important; }
+          body, #article { 
+            max-width: 100% !important; 
+            transform: scale(${zoom / 100});
+            transform-origin: top left;
+            width: ${10000 / zoom}%;
+          }
           img, table, iframe { max-width: 100% !important; height: auto; }
           * { box-sizing: border-box; }
         </style>
@@ -703,6 +757,30 @@ function DocumentPreview({ codeName, html, loading, onClose, onDownload, onFulls
             <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border)', background: 'var(--surface)' }}>
                 <h2 className="text-lg font-semibold" style={{ color: 'var(--accent)' }}>{codeName}</h2>
                 <div className="flex items-center gap-2">
+                    {/* Кнопки масштабирования для мобильных устройств */}
+                    {isMobileDevice && (
+                        <>
+                            <button
+                                onClick={() => setZoom(Math.max(50, zoom - 10))}
+                                className="px-2 py-1 text-sm rounded hover:opacity-80"
+                                style={{ background: 'var(--accentBg)', color: 'var(--btnText)' }}
+                                title="Зменшити"
+                            >
+                                -
+                            </button>
+                            <span className="text-xs px-2 py-1 rounded" style={{ background: 'var(--surface)', color: 'var(--ink)' }}>
+                                {zoom}%
+                            </span>
+                            <button
+                                onClick={() => setZoom(Math.min(200, zoom + 10))}
+                                className="px-2 py-1 text-sm rounded hover:opacity-80"
+                                style={{ background: 'var(--accentBg)', color: 'var(--btnText)' }}
+                                title="Збільшити"
+                            >
+                                +
+                            </button>
+                        </>
+                    )}
                     <button
                         onClick={onDownload}
                         className="px-3 py-1 text-sm rounded hover:opacity-80"
@@ -805,49 +883,53 @@ function MobileCodesGrid({ codes, onSelectCode, showTitle = true }) {
         <div className="space-y-4">
             {showTitle && (
                 <div>
-                    <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--accent)' }}>
+                    <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--accent)' }}>
                         Офіційні документи ({codeEntries.length})
                     </h3>
                 </div>
             )}
-            {!showTitle && (
-                <div>
-                    <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--accent)' }}>
-                        Офіційні документи ({codeEntries.length})
-                    </h3>
-                </div>
-            )}
-            <div className="space-y-3">
+
+            {/* Сетка для мобильных устройств */}
+            <div className="grid grid-cols-1 gap-3">
                 {codeEntries.map(([name, meta]) => (
                     <div
                         key={meta.id}
-                        className="p-4 rounded border cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                        className="p-3 rounded-lg border cursor-pointer transition-all duration-200 active:scale-95"
                         style={{
                             background: 'var(--surface)',
-                            border: '1px solid var(--border)'
+                            border: '1px solid var(--border)',
+                            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
                         }}
                         onClick={() => onSelectCode(meta.id, name)}
                     >
-                        <div className="flex justify-between items-center">
-                            <div className="flex-1">
-                                <div className="text-sm font-medium mb-1" style={{ color: 'var(--ink)' }}>
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium leading-5 mb-1" style={{ color: 'var(--ink)' }}>
                                     {name}
                                 </div>
-                                <div className="text-xs" style={{ color: 'var(--muted)' }}>
-                                    ID: {meta.id}
+                                <div className="text-xs leading-4" style={{ color: 'var(--muted)' }}>
+                                    Код: {meta.id}
                                 </div>
                             </div>
-                            <div className="ml-3">
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        onSelectCode(meta.id, name)
-                                    }}
-                                    className="text-xs px-3 py-1 rounded hover:opacity-80"
-                                    style={{ background: 'var(--accentBg)', color: 'var(--btnText)' }}
+                            <div className="shrink-0">
+                                <div
+                                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                                    style={{ background: 'var(--accentBg)' }}
                                 >
-                                    Переглянути
-                                </button>
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        style={{ color: 'var(--btnText)' }}
+                                    >
+                                        <path d="m9 18 6-6-6-6" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
