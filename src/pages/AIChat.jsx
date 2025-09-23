@@ -20,6 +20,7 @@ export default function AIChat() {
     const [messages, setMessages] = useState([])
     const [isStreaming, setIsStreaming] = useState(false)
     const [toolCallText, setToolCallText] = useState('')
+    const [currentSources, setCurrentSources] = useState([])
     const [copiedIdx, setCopiedIdx] = useState(null)
     const [shareOpen, setShareOpen] = useState(false)
     const [shareContent, setShareContent] = useState('')
@@ -30,12 +31,21 @@ export default function AIChat() {
     const [renameBusy, setRenameBusy] = useState(false)
     const [renameTarget, setRenameTarget] = useState({ id: null, name: '' })
     const [renameName, setRenameName] = useState('')
+    const [currentStatus, setCurrentStatus] = useState('not working')
+
     function normalizeMarkdownText(input) {
         const text = String(input ?? '')
         return text
             .replace(/\r\n/g, '\n')
             .replace(/\\n/g, '\n')
             .replace(/\\t/g, '\t')
+    }
+
+    function getToolLabel(name) {
+        const n = String(name || '').trim()
+        if (!n) return ''
+        if (n === 'LegalCorpusSearch') return 'Шукаю у законодавчій базі'
+        return 'Шукаю в Інтернеті'
     }
 
 
@@ -96,10 +106,13 @@ export default function AIChat() {
             return []
         }
         const data = await ChatAPI.getThreadMessages(threadId)
-        // Expecting array of { type: 'human'|'ai', content: string }
+        // Expecting array of { type: 'human'|'ai', content: string, sources?: string[] }
         setThreadReaction(data.reaction)
-        setMessages(data.messages)
-        return data.messages
+        const normalized = Array.isArray(data.messages)
+            ? data.messages.map((m) => (m && m.type === 'ai' ? { ...m, finished: true } : m))
+            : []
+        setMessages(normalized)
+        return normalized
     }
 
     function closeStream() {
@@ -107,6 +120,7 @@ export default function AIChat() {
         esRef.current = null
         setIsStreaming(false)
         setToolCallText('')
+        setCurrentSources([])
     }
 
     async function abortStream() {
@@ -130,6 +144,7 @@ export default function AIChat() {
         setIsStreaming(true)
         let started = false
         let activeEventType = null // 'message' | 'chunk'
+        let sourcesBuffer = []
 
         // Показываем «три точки» до появления первого чанка, только при отправке нового сообщения
         if (showLoadingPlaceholder) {
@@ -150,9 +165,9 @@ export default function AIChat() {
                 console.log('[AIChat][SSE chunk]', contentStr)
                 // если последний элемент — плейсхолдер, заменяем его первым чанкoм
                 if (next.length && next[next.length - 1].type === 'ai_loading') {
-                    next[next.length - 1] = { type: 'ai', content: contentStr }
+                    next[next.length - 1] = { type: 'ai', content: contentStr, finished: false }
                 } else if (!started || next.length === 0 || next[next.length - 1].type !== 'ai') {
-                    next.push({ type: 'ai', content: contentStr })
+                    next.push({ type: 'ai', content: contentStr, finished: false })
                 } else {
                     next[next.length - 1] = { ...next[next.length - 1], content: next[next.length - 1].content + contentStr }
                 }
@@ -171,13 +186,63 @@ export default function AIChat() {
             if (typeof ev.data === 'string' && ev.data.length) {
                 console.log('[AIChat][Chunk message]', ev.data)
                 appendAiChunk(ev.data)
+                // Как только пришёл контент — убираем плашку инструмента и прикрепим источники
+                if (toolCallText) setToolCallText('')
+                // Прикрепим уже накопленные источники к текущему сообщению
+                if (sourcesBuffer.length) {
+                    setMessages((prev) => {
+                        const next = [...prev]
+                        if (next.length && next[next.length - 1].type === 'ai') {
+                            const uniq = Array.from(new Set(sourcesBuffer))
+                            next[next.length - 1] = { ...next[next.length - 1], sources: uniq }
+                        }
+                        return next
+                    })
+                }
             }
         }
 
         es.addEventListener('chunk', onChunk)
+        setCurrentStatus('writing')
+        const persistSourcesToLastMessage = () => {
+            if (!sourcesBuffer || sourcesBuffer.length === 0) return
+            setMessages((prev) => {
+                const next = [...prev]
+                if (next.length && next[next.length - 1].type === 'ai') {
+                    const uniq = Array.from(new Set(sourcesBuffer))
+                    next[next.length - 1] = { ...next[next.length - 1], sources: uniq }
+                }
+                return next
+            })
+        }
+
         es.addEventListener('system', (ev) => {
-            const text = (ev.data || '').trim()
-            if (text === 'end') {
+            const raw = (ev.data || '').trim()
+            const parseErrorMessage = (payload) => {
+                if (!payload) return ''
+                // Try JSON first
+                try {
+                    const obj = JSON.parse(payload)
+                    return String(obj.message || obj.error || obj.detail || '')
+                } catch { /* not json */ }
+                // Support "error: message" or "tool_error: message"
+                const m = payload.match(/^\s*(?:error|tool_error|exception)\s*:\s*(.+)$/i)
+                if (m && m[1]) return m[1].trim()
+                return ''
+            }
+
+            if (raw === 'end') {
+                // Сохраняем источники в последнее AI-сообщение
+                setCurrentStatus('not working')
+                persistSourcesToLastMessage()
+                // Помечаем последнее AI-сообщение как завершённое
+                setMessages((prev) => {
+                    const next = [...prev]
+                    if (next.length && next[next.length - 1].type === 'ai') {
+                        next[next.length - 1] = { ...next[next.length - 1], finished: true }
+                    }
+                    return next
+                })
                 closeStream()
                 // Если генерация так и не началась — удаляем плейсхолдер
                 if (!started) {
@@ -190,22 +255,54 @@ export default function AIChat() {
                     })
                 }
                 fetchThreads().catch(() => { })
-            } else if (text === 'error') {
-                // Сервер сообщил об ошибке генерации. Показываем только если поток начался.
-                if (started) {
-                    setMessages((prev) => ([
-                        ...prev,
-                        { type: 'ai_error', content: 'Помилка генерації відповіді' }
-                    ]))
-                    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
-                }
+                return
+            }
+
+            if (raw === 'error' || /^\s*(?:error|tool_error|exception)\s*[:{]/i.test(raw)) {
+                console.log('[AIChat][SSE error]', raw)
+                const details = parseErrorMessage(raw)
+                const messageText = details
+                    ? `Помилка інструмента: ${details}`
+                    : 'Помилка генерації відповіді'
+                // Если был плейсхолдер и не началось — заменим его на ошибку
+                setMessages((prev) => {
+                    const next = [...prev]
+                    if (next.length && next[next.length - 1].type === 'ai_loading') {
+                        next[next.length - 1] = { type: 'ai_error', content: messageText }
+                        return next
+                    }
+                    if (started) return [...prev, { type: 'ai_error', content: messageText }]
+                    return prev
+                })
+                if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
                 closeStream()
+            }
+
+            if (raw === 'message_ended') {
+                setMessages((prev) => {
+                    const next = [...prev]
+                    if (next.length && next[next.length - 1].type === 'ai') {
+                        next[next.length - 1] = { ...next[next.length - 1], finished: true, content: next[next.length - 1].content + '\n\n' }
+                    }
+                    return next
+                })
             }
         })
         es.addEventListener('tool_call', (ev) => {
+            setCurrentStatus('using tool')
+            console.log('[AIChat][SSE tool_call]', ev.data)
             const text = String(ev.data || '').trim()
             setToolCallText(text)
         })
+        es.addEventListener('source', (ev) => {
+            console.log('[AIChat][Source incoming]', ev.data)
+            const name = String(ev.data || '').trim()
+            if (!name) return
+            // копим во временный буфер и отображаем онлайн
+            if (!sourcesBuffer.includes(name)) sourcesBuffer.push(name)
+            setCurrentSources((prev) => (prev.includes(name) ? prev : [...prev, name]))
+        })
+
         es.onerror = () => {
             // Показываем ошибку только если поток реально начался.
             // При первичном подключении SSE часто эмитит onerror (reconnect),
@@ -544,10 +641,18 @@ export default function AIChat() {
                                     ) : m.type === 'ai_loading' ? (
                                         <div className="flex justify-start">
                                             <div className="chat-bubble chat-bubble--ai">
-                                                <div className="typing" aria-label="Завантаження">
-                                                    <span></span>
-                                                    <span></span>
-                                                    <span></span>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="typing" aria-label="Завантаження">
+                                                        <span></span>
+                                                        <span></span>
+                                                        <span></span>
+                                                    </div>
+                                                    {idx === messages.length - 1 && toolCallText ? (
+                                                        <div className="tool-call-ui">
+                                                            <span className="tool-call-spinner" />
+                                                            <span className="tool-call-text">{getToolLabel(toolCallText)}</span>
+                                                        </div>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         </div>
@@ -559,22 +664,39 @@ export default function AIChat() {
                                                         {normalizeMarkdownText(m.content)}
                                                     </MarkdownRenderer>
                                                 </div>
-                                                <div className="mt-2 flex items-center gap-2 opacity-80">
-                                                    <button type="button" title="Копіювати" className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50" onClick={() => copyMessage(m.content, idx)}>
-                                                        {copiedIdx === idx ? <Check size={14} /> : <Copy size={14} />}
-                                                        <span>{copiedIdx === idx ? 'Скопійовано' : 'Копіювати'}</span>
-                                                    </button>
-                                                    <button type="button" title="Поділитися" className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50" onClick={() => openShare(m.content)}>
-                                                        <Share2 size={14} />
-                                                        <span>Поділитися</span>
-                                                    </button>
-                                                </div>
-                                                {idx === messages.length - 1 && toolCallText ? (
+
+                                                {idx === messages.length - 1 && toolCallText && currentStatus === 'using tool' ? (
                                                     <div className="tool-call-ui">
                                                         <span className="tool-call-spinner" />
-                                                        <span className="tool-call-text">{toolCallText}</span>
+                                                        <span className="tool-call-text">{getToolLabel(toolCallText)}</span>
                                                     </div>
                                                 ) : null}
+                                                {/* Источники: онлайн для текущего ответа или из сохранённых в сообщении */}
+                                                {idx === messages.length - 1 && currentSources && currentSources.length > 0 ? (
+                                                    <div className="source-chips">
+                                                        {currentSources.map((s, i) => (
+                                                            <div key={i} className="source-chip"><FileText size={14} />{s}</div>
+                                                        ))}
+                                                    </div>
+                                                ) : (Array.isArray(m.sources) && m.sources.length > 0 ? (
+                                                    <div className="source-chips">
+                                                        {m.sources.map((s, i) => (
+                                                            <div key={i} className="source-chip"><FileText size={14} />{s}</div>
+                                                        ))}
+                                                    </div>
+                                                ) : null)}
+                                                {m.finished && (
+                                                    <div className="mt-2 flex items-center gap-2 opacity-80">
+                                                        <button type="button" title="Копіювати" className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50" onClick={() => copyMessage(m.content, idx)}>
+                                                            {copiedIdx === idx ? <Check size={14} /> : <Copy size={14} />}
+                                                            <span>{copiedIdx === idx ? 'Скопійовано' : 'Копіювати'}</span>
+                                                        </button>
+                                                        <button type="button" title="Поділитися" className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50" onClick={() => openShare(m.content)}>
+                                                            <Share2 size={14} />
+                                                            <span>Поділитися</span>
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
