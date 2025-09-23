@@ -8,7 +8,7 @@ import './lib/theme.js'
 import { AuthProvider } from './lib/authContext.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  <>
     {/*
       Важно: не фиксируем светлую тему. Radix будет наследовать текущую тему,
       определяемую через атрибут data-theme на <html> (ThemeManager).
@@ -18,5 +18,5 @@ createRoot(document.getElementById('root')).render(
         <App />
       </AuthProvider>
     </Theme>
-  </StrictMode>,
+  </>,
 )

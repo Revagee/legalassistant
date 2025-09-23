@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
+import MarkdownRenderer from '../components/MarkdownRenderer.jsx'
 import { useAuth } from '../lib/authContext.jsx'
 import { ChatAPI, getBaseUrl } from '../lib/api.js'
 import { Trash2, Pencil, Send, ThumbsUp, ThumbsDown, Copy, Check, Share2, FileText, Mail, MessageCircle, MessageSquare, Square } from 'lucide-react'
@@ -11,6 +10,8 @@ export default function AIChat() {
     const inputRef = useRef(null)
     const formRef = useRef(null)
     const esRef = useRef(null)
+    const hasProcessedQueryRef = useRef(false)
+    const initialHasQRef = useRef(!!(new URLSearchParams(window.location.search || '').get('q')))
     const [drawerOpen, setDrawerOpen] = useState(false)
     const { isAuthenticated, loading } = useAuth()
 
@@ -29,10 +30,14 @@ export default function AIChat() {
     const [renameBusy, setRenameBusy] = useState(false)
     const [renameTarget, setRenameTarget] = useState({ id: null, name: '' })
     const [renameName, setRenameName] = useState('')
-
-    function setSendDisabled(disabled) {
-        setIsStreaming(!!disabled)
+    function normalizeMarkdownText(input) {
+        const text = String(input ?? '')
+        return text
+            .replace(/\r\n/g, '\n')
+            .replace(/\\n/g, '\n')
+            .replace(/\\t/g, '\t')
     }
+
 
     function threadTimestamp(thread) {
         return thread?.last_activity_time || new Date().toISOString()
@@ -100,7 +105,7 @@ export default function AIChat() {
     function closeStream() {
         try { if (esRef.current) esRef.current.close() } catch { /* ignore */ }
         esRef.current = null
-        setSendDisabled(false)
+        setIsStreaming(false)
         setToolCallText('')
     }
 
@@ -114,17 +119,17 @@ export default function AIChat() {
     }
 
     function openStream(threadId, options = {}) {
+        console.log('[AIChat][openStream]', threadId, options)
         const { showLoadingPlaceholder = false } = options
-        closeStream()
         if (!threadId || !isAuthenticated) return
         const base = getBaseUrl()
         const url = new URL((base.startsWith('http') ? base : window.location.origin + base) + '/chat/stream')
         url.searchParams.set('thread_id', threadId)
         const es = new EventSource(url.toString())
-        esRef.current = es
-        setSendDisabled(true)
-
+        esRef.current = es;
+        setIsStreaming(true)
         let started = false
+        let activeEventType = null // 'message' | 'chunk'
 
         // Показываем «три точки» до появления первого чанка, только при отправке нового сообщения
         if (showLoadingPlaceholder) {
@@ -142,6 +147,7 @@ export default function AIChat() {
             setMessages((prev) => {
                 const next = [...prev]
                 const contentStr = String(chunk || '')
+                console.log('[AIChat][SSE chunk]', contentStr)
                 // если последний элемент — плейсхолдер, заменяем его первым чанкoм
                 if (next.length && next[next.length - 1].type === 'ai_loading') {
                     next[next.length - 1] = { type: 'ai', content: contentStr }
@@ -156,13 +162,19 @@ export default function AIChat() {
             if (toolCallText) setToolCallText('')
             if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
         }
-
-        es.onmessage = (ev) => {
-            if (typeof ev.data === 'string' && ev.data.length) appendAiChunk(ev.data)
+        const onChunk = (ev) => {
+            if (activeEventType && activeEventType !== 'chunk') return
+            if (!activeEventType) {
+                activeEventType = 'chunk'
+                es.onmessage = null
+            }
+            if (typeof ev.data === 'string' && ev.data.length) {
+                console.log('[AIChat][Chunk message]', ev.data)
+                appendAiChunk(ev.data)
+            }
         }
-        es.addEventListener('chunk', (ev) => {
-            if (typeof ev.data === 'string' && ev.data.length) appendAiChunk(ev.data)
-        })
+
+        es.addEventListener('chunk', onChunk)
         es.addEventListener('system', (ev) => {
             const text = (ev.data || '').trim()
             if (text === 'end') {
@@ -198,6 +210,7 @@ export default function AIChat() {
             // Показываем ошибку только если поток реально начался.
             // При первичном подключении SSE часто эмитит onerror (reconnect),
             // что не является ошибкой генерации и не должно пугать пользователя.
+            console.log('[AIChat][SSE error]')
             if (started) {
                 setMessages((prev) => {
                     if (prev.length && prev[prev.length - 1].type === 'ai_error') return prev
@@ -315,17 +328,19 @@ export default function AIChat() {
         setMessages([])
     }
 
-    async function handleSubmit(e) {
-        e.preventDefault()
+    async function handleSubmit(e, options = {}) {
+        if (e && typeof e.preventDefault === 'function') e.preventDefault()
         if (!isAuthenticated) return
+        const { forceNewThread = false, initialContent } = options
         const el = inputRef.current
-        if (!el) return
-        const value = (el.value || '').trim()
+        if (!el && !initialContent) return
+        const valueRaw = initialContent != null ? String(initialContent) : String(el.value || '')
+        const value = valueRaw.trim()
         if (!value) return
 
-        // If no thread yet, create a client-side UUID and optimistic sidebar item
+        // If no thread yet OR forced new thread, create a client-side UUID and optimistic sidebar item
         let threadId = activeId
-        if (!threadId) {
+        if (forceNewThread || !threadId) {
             const newId = (typeof crypto !== 'undefined' && crypto.randomUUID)
                 ? crypto.randomUUID()
                 : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16))
@@ -336,8 +351,10 @@ export default function AIChat() {
 
         // Append user message immediately
         setMessages((prev) => [...prev, { type: 'human', content: value }])
-        el.value = ''
-        autoGrowTextarea()
+        if (el) {
+            el.value = ''
+            autoGrowTextarea()
+        }
 
         await ChatAPI.sendMessage(threadId, value).catch(() => { })
 
@@ -349,21 +366,7 @@ export default function AIChat() {
         if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
     }, [messages])
 
-    useEffect(() => {
-        const container = bodyRef.current
-        if (!container) return
-        const nodes = container.querySelectorAll('.md-answer[data-md="1"]')
-        nodes.forEach((n) => {
-            try {
-                const raw = n.textContent || ''
-                const html = DOMPurify.sanitize(marked.parse(raw, { gfm: true, breaks: true, headerIds: false, mangle: false }))
-                n.innerHTML = html
-                n.classList.remove('whitespace-pre-wrap')
-            } catch {
-                // ignore
-            }
-        })
-    }, [messages])
+    // Markdown теперь рендерится напрямую в JSX через dangerouslySetInnerHTML
 
     useEffect(() => {
         // Инициализируем динамический нижний отступ и обновляем при ресайзе
@@ -379,7 +382,9 @@ export default function AIChat() {
                 try {
                     if (!loading && isAuthenticated) {
                         const list = await fetchThreads()
-                        if (mounted && list && list.length) {
+                        // Если q присутствовал при первом заходе — не выбираем первый тред автоматически
+                        const hasQ = initialHasQRef.current && !hasProcessedQueryRef.current
+                        if (mounted && list && list.length && !hasQ) {
                             await selectThread(list[0].id)
                         }
                     } else {
@@ -395,6 +400,26 @@ export default function AIChat() {
             mounted = false
             closeStream()
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthenticated, loading])
+
+    // Обработка query-параметра q: при входе на страницу и наличии авторизации — отправляем как новое сообщение
+    useEffect(() => {
+        if (loading || !isAuthenticated || hasProcessedQueryRef.current) return
+        try {
+            const params = new URLSearchParams(window.location.search || '')
+            const q = (params.get('q') || '').trim()
+            if (!q) return
+            hasProcessedQueryRef.current = true
+            // Отправляем q в новый тред без привязки к текущему активному
+            handleSubmit({ preventDefault: () => { } }, { forceNewThread: true, initialContent: q })
+            // Очищаем q из URL, чтобы не переотправлять при навигации
+            try {
+                const url = new URL(window.location.href)
+                url.searchParams.delete('q')
+                window.history.replaceState({}, '', url.toString())
+            } catch { /* ignore */ }
+        } catch { /* ignore */ }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAuthenticated, loading])
 
@@ -529,7 +554,11 @@ export default function AIChat() {
                                     ) : (
                                         <div className="flex justify-start">
                                             <div className="chat-bubble chat-bubble--ai">
-                                                <div className="md-answer whitespace-pre-wrap" data-md="1">{m.content}</div>
+                                                <div className="md-answer">
+                                                    <MarkdownRenderer>
+                                                        {normalizeMarkdownText(m.content)}
+                                                    </MarkdownRenderer>
+                                                </div>
                                                 <div className="mt-2 flex items-center gap-2 opacity-80">
                                                     <button type="button" title="Копіювати" className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50" onClick={() => copyMessage(m.content, idx)}>
                                                         {copiedIdx === idx ? <Check size={14} /> : <Copy size={14} />}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Eye, Download, Filter, X } from 'lucide-react'
 
 function toPdfPath(filePath) {
@@ -12,126 +12,6 @@ function toPdfPath(filePath) {
     } catch {
         return filePath
     }
-}
-
-function DocxPreview({ url, onPagesCountChange }) {
-    const containerRef = useRef(null)
-    const viewportRef = useRef(null)
-    const outerRef = useRef(null)
-    const [pagesCount, setPagesCount] = useState(0)
-
-    useEffect(() => {
-        let canceled = false
-
-        const resizeToFit = () => {
-            const viewportEl = viewportRef.current
-            const contentEl = containerRef.current
-            const outerEl = outerRef.current
-            if (!viewportEl || !contentEl || !outerEl) return
-
-            // Рассчитываем A4-вьюпорт, центрируем и ограничиваем внутри доступной области
-            const a4Ratio = 1.41421356237 // высота / ширина
-            const outerW = outerEl.clientWidth
-            const outerH = outerEl.clientHeight
-
-            // Сбрасываем масштаб перед измерением
-            contentEl.style.transform = 'scale(1)'
-
-            // Берем первую страницу как эталон
-            const pageEl = Array.from(contentEl.children).find((el) => el.clientWidth && el.clientHeight) || contentEl.firstElementChild
-            const pageW = (pageEl?.clientWidth || contentEl.clientWidth || 1)
-            const _PAGE_H = (pageEl?.clientHeight || contentEl.clientHeight || 1) // keep to satisfy linter when needed
-
-            // Ширина вьюпорта определяется как максимум, который поместится с учётом A4-отношения
-            const maxViewportW = Math.min(outerW, outerH / a4Ratio)
-            const viewportW = Math.floor(maxViewportW)
-            const viewportH = Math.floor(viewportW * a4Ratio)
-            viewportEl.style.width = `${viewportW}px`
-            viewportEl.style.height = `${viewportH}px`
-
-            // Масштаб по ширине: страница занимает 100% ширины A4-вьюпорта
-            const scale = viewportW / pageW
-            contentEl.style.transform = `scale(${scale})`
-            contentEl.style.transformOrigin = 'top center'
-
-            // Включаем постраничную прокрутку
-            viewportEl.style.overflow = 'auto'
-            viewportEl.style.scrollSnapType = 'y mandatory'
-            Array.from(contentEl.children).forEach((el) => {
-                el.style.scrollSnapAlign = 'start'
-                el.style.marginLeft = 'auto'
-                el.style.marginRight = 'auto'
-            })
-
-            // Подсчет количества страниц и высоты одной страницы
-            const pages = Array.from(contentEl.children).filter((el) => el.clientHeight && el.clientWidth)
-            const currentPagesCount = pages.length
-            if (currentPagesCount > 0) {
-                const totalHeight = pages.reduce((acc, el) => acc + el.clientHeight, 0)
-                const pageHeightOriginal = totalHeight / currentPagesCount
-                const pageHeightScaled = pageHeightOriginal * scale
-                // Быстрый доступ при необходимости
-                viewportEl.dataset.pagesCount = String(currentPagesCount)
-                viewportEl.dataset.pageHeight = String(Math.round(pageHeightOriginal))
-                viewportEl.dataset.pageHeightScaled = String(Math.round(pageHeightScaled))
-                viewportEl.dataset.pagePercent = String(100 / currentPagesCount)
-
-                // Обновляем состояние количества страниц
-                if (currentPagesCount !== pagesCount) {
-                    setPagesCount(currentPagesCount)
-                    if (onPagesCountChange) {
-                        onPagesCountChange(currentPagesCount)
-                    }
-                }
-                // Для отладки/проверки
-                // console.debug('DOCX preview pages:', { currentPagesCount, pageHeightOriginal, pageHeightScaled })
-            }
-        }
-
-        async function render() {
-            try {
-                const res = await fetch(url)
-                const buf = await res.arrayBuffer()
-                const { renderAsync } = await import('docx-preview')
-                if (!canceled && containerRef.current) {
-                    containerRef.current.innerHTML = ''
-                    await renderAsync(buf, containerRef.current, undefined, { inWrapper: true })
-                    // Вертикальный стек страниц по центру
-                    containerRef.current.style.display = 'flex'
-                    containerRef.current.style.flexDirection = 'column'
-                    containerRef.current.style.alignItems = 'center'
-                    containerRef.current.style.rowGap = '12px'
-                    requestAnimationFrame(resizeToFit)
-                }
-            } catch (e) {
-                console.error('DOCX preview failed', e)
-            }
-        }
-        render()
-
-        const onResize = () => requestAnimationFrame(resizeToFit)
-        window.addEventListener('resize', onResize)
-        return () => { canceled = true; window.removeEventListener('resize', onResize) }
-    }, [url])
-
-    return (
-        <div ref={outerRef} className="h-full w-full flex items-center justify-center overflow-hidden">
-            {/* Вьюпорт с соотношением сторон A4 */}
-            <div
-                ref={viewportRef}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'center',
-                    overflow: 'auto'
-                }}
-            >
-                <div ref={containerRef} className="px-3" />
-            </div>
-        </div>
-    )
 }
 
 function PdfPreview({ url }) {
@@ -152,13 +32,6 @@ export default function Documents() {
     const [filtersOpen, setFiltersOpen] = useState(false)
     const [categoryFilter, setCategoryFilter] = useState([]) // array of category keys
     const [viewportWidth, setViewportWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200))
-    const [documentPagesCount, setDocumentPagesCount] = useState(0)
-    const [pdfAvailable, setPdfAvailable] = useState(false)
-
-    // Сбрасываем счетчик страниц при смене документа
-    useEffect(() => {
-        setDocumentPagesCount(0)
-    }, [selected])
 
     useEffect(() => {
         fetch('/files/manifest.json', { cache: 'no-store' })
@@ -169,15 +42,6 @@ export default function Documents() {
 
     // Проверяем наличие PDF-файла с тем же именем в подпапке pdf
     const pdfUrl = useMemo(() => (selected ? toPdfPath(selected.path) : ''), [selected])
-    useEffect(() => {
-        let cancelled = false
-        setPdfAvailable(false)
-        if (!pdfUrl) return
-        fetch(pdfUrl, { method: 'HEAD', cache: 'no-store' })
-            .then((r) => { if (!cancelled) setPdfAvailable(r.ok) })
-            .catch(() => { if (!cancelled) setPdfAvailable(false) })
-        return () => { cancelled = true }
-    }, [pdfUrl])
 
     useEffect(() => {
         const onResize = () => setViewportWidth(window.innerWidth)
@@ -238,18 +102,6 @@ export default function Documents() {
         return (manifest.categories || []).reduce((acc, c) => acc + (c.files?.length || 0), 0)
     }, [manifest])
 
-    const previewExternalUrl = useMemo(() => {
-        if (!selected) return ''
-        const abs = new URL(selected.path, window.location.origin).href
-        if (selected.ext === 'doc') {
-            return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(abs)}`
-        }
-        if (selected.ext === 'rtf') {
-            return `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(abs)}`
-        }
-        return ''
-    }, [selected])
-
     const allCategories = useMemo(() => (manifest?.categories || []).map((c) => ({ key: c.key, label: c.label })), [manifest])
 
     const isDesktop = viewportWidth >= 1024
@@ -278,7 +130,7 @@ export default function Documents() {
                         className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]"
                     />
                     <button type="button" onClick={() => setFiltersOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                        <Filter size={16} /> Фільтри
+                        <Filter size={16} /> <span className="hidden sm:inline">Фільтри</span>
                     </button>
                 </div>
             )}
@@ -296,11 +148,11 @@ export default function Documents() {
                 <div className="mt-6">
                     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cardsColumns}, minmax(0, 1fr))`, gap: 16 }}>
                         {filtered.map((f) => (
-                            <div key={f.path} className="group rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer" onClick={() => setSelected(f)}>
+                            <div key={f.path} className="group rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer" onClick={() => { setSelected(f); if (!isDesktop && typeof window !== 'undefined' && typeof window.scrollTo === 'function') { window.scrollTo({ top: 0, behavior: 'smooth' }) } }}>
                                 <div className="flex items-start justify-between gap-3">
                                     <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] text-gray-600" title={f.categoryLabel}>{f.categoryLabel}</span>
                                     <div className="inline-flex items-center gap-1">
-                                        <button type="button" aria-label="Переглянути" onClick={(e) => { e.stopPropagation(); setSelected(f) }} className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                        <button type="button" aria-label="Переглянути" onClick={(e) => { e.stopPropagation(); setSelected(f); if (!isDesktop && typeof window !== 'undefined' && typeof window.scrollTo === 'function') { window.scrollTo({ top: 0, behavior: 'smooth' }) } }} className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
                                             <Eye size={14} />
                                         </button>
                                         <a aria-label="Завантажити" href={f.path} download onClick={(e) => e.stopPropagation()} className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-[var(--accent)] text-white hover:opacity-90">
@@ -347,7 +199,7 @@ export default function Documents() {
                                     className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]"
                                 />
                                 <button type="button" onClick={() => setFiltersOpen(true)} className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                                    <Filter size={16} /> Фільтри
+                                    <Filter size={16} /> <span className="hidden sm:inline">Фільтри</span>
                                 </button>
                             </div>
                         </div>
@@ -356,7 +208,7 @@ export default function Documents() {
                             <div className={isDesktop ? 'h-full overflow-auto p-3' : 'p-3'}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                     {filtered.map((f) => (
-                                        <button key={f.path} type="button" onClick={() => setSelected(f)} className="text-left rounded-lg border border-gray-100 p-3 hover:bg-gray-50">
+                                        <button key={f.path} type="button" onClick={() => { setSelected(f); if (!isDesktop && typeof window !== 'undefined' && typeof window.scrollTo === 'function') { window.scrollTo({ top: 0, behavior: 'smooth' }) } }} className="text-left rounded-lg border border-gray-100 p-3 hover:bg-gray-50">
                                             <div className="flex items-start justify-between gap-2">
                                                 <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] text-gray-600" title={f.categoryLabel}>{f.categoryLabel}</span>
                                                 <span className="text-[11px] text-gray-500">{f.ext.toUpperCase()}</span>
@@ -378,11 +230,6 @@ export default function Documents() {
                                     <div className="text-sm font-semibold text-gray-900 break-words">{selected.name}</div>
                                     <div className="text-xs text-gray-500 break-all">
                                         {selected.filename}
-                                        {selected.ext === 'docx' && documentPagesCount > 0 && (
-                                            <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
-                                                {documentPagesCount} {documentPagesCount === 1 ? 'сторінка' : documentPagesCount > 1 && documentPagesCount < 5 ? 'сторінки' : 'сторінок'}
-                                            </span>
-                                        )}
                                     </div>
                                 </div>
                                 <div className="shrink-0 inline-flex items-center gap-2">
@@ -391,15 +238,7 @@ export default function Documents() {
                                 </div>
                             </div>
                             <div className="mt-3 rounded-md border border-gray-100 overflow-hidden" style={{ height: isDesktop ? 'calc(100% - 48px)' : '60vh', width: '100%', maxWidth: 900, marginLeft: 'auto', marginRight: 'auto' }}>
-                                {pdfAvailable ? (
-                                    <PdfPreview url={pdfUrl} />
-                                ) : selected.ext === 'docx' ? (
-                                    <DocxPreview url={selected.path} onPagesCountChange={setDocumentPagesCount} />
-                                ) : previewExternalUrl ? (
-                                    <iframe title="preview" src={previewExternalUrl} className="w-full h-full" />
-                                ) : (
-                                    <div className="p-4 text-xs" style={{ color: '#6b7280' }}>Попередній перегляд недоступний для цього формату. Скористайтеся кнопкою «Завантажити».</div>
-                                )}
+                                <PdfPreview url={pdfUrl} />
                             </div>
                         </div>
                     </aside>
