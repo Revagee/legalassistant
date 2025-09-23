@@ -4,7 +4,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useAuth } from '../lib/authContext.jsx'
 import { ChatAPI, getBaseUrl } from '../lib/api.js'
-import { Trash2, Pencil, Send, ThumbsUp, ThumbsDown, Copy, Check, Share2, FileText, Mail, MessageCircle, MessageSquare } from 'lucide-react'
+import { Trash2, Pencil, Send, ThumbsUp, ThumbsDown, Copy, Check, Share2, FileText, Mail, MessageCircle, MessageSquare, Square } from 'lucide-react'
 
 export default function AIChat() {
     const bodyRef = useRef(null)
@@ -104,7 +104,17 @@ export default function AIChat() {
         setToolCallText('')
     }
 
-    function openStream(threadId) {
+    async function abortStream() {
+        // Явно останавливаем текущий SSE
+        try {
+            if (isAuthenticated && activeId) {
+                try { await ChatAPI.abort(activeId) } catch { /* ignore */ }
+            }
+        } catch { /* ignore */ }
+    }
+
+    function openStream(threadId, options = {}) {
+        const { showLoadingPlaceholder = false } = options
         closeStream()
         if (!threadId || !isAuthenticated) return
         const base = getBaseUrl()
@@ -116,13 +126,29 @@ export default function AIChat() {
 
         let started = false
 
+        // Показываем «три точки» до появления первого чанка, только при отправке нового сообщения
+        if (showLoadingPlaceholder) {
+            setMessages((prev) => {
+                const next = [...prev]
+                // избегаем дублей если вдруг уже есть такой плейсхолдер
+                if (!next.length || next[next.length - 1].type !== 'ai_loading') {
+                    next.push({ type: 'ai_loading' })
+                }
+                return next
+            })
+        }
+
         const appendAiChunk = (chunk) => {
             setMessages((prev) => {
                 const next = [...prev]
-                if (!started || next.length === 0 || next[next.length - 1].type !== 'ai') {
-                    next.push({ type: 'ai', content: String(chunk || '') })
+                const contentStr = String(chunk || '')
+                // если последний элемент — плейсхолдер, заменяем его первым чанкoм
+                if (next.length && next[next.length - 1].type === 'ai_loading') {
+                    next[next.length - 1] = { type: 'ai', content: contentStr }
+                } else if (!started || next.length === 0 || next[next.length - 1].type !== 'ai') {
+                    next.push({ type: 'ai', content: contentStr })
                 } else {
-                    next[next.length - 1] = { ...next[next.length - 1], content: next[next.length - 1].content + String(chunk || '') }
+                    next[next.length - 1] = { ...next[next.length - 1], content: next[next.length - 1].content + contentStr }
                 }
                 return next
             })
@@ -141,6 +167,16 @@ export default function AIChat() {
             const text = (ev.data || '').trim()
             if (text === 'end') {
                 closeStream()
+                // Если генерация так и не началась — удаляем плейсхолдер
+                if (!started) {
+                    setMessages((prev) => {
+                        if (prev.length && prev[prev.length - 1].type === 'ai_loading') {
+                            const copy = prev.slice(0, -1)
+                            return copy
+                        }
+                        return prev
+                    })
+                }
                 fetchThreads().catch(() => { })
             } else if (text === 'error') {
                 // Сервер сообщил об ошибке генерации. Показываем только если поток начался.
@@ -305,7 +341,8 @@ export default function AIChat() {
 
         await ChatAPI.sendMessage(threadId, value).catch(() => { })
 
-        openStream(threadId)
+        // Открываем стрим и показываем плейсхолдер до первого чанка
+        openStream(threadId, { showLoadingPlaceholder: true })
     }
 
     useEffect(() => {
@@ -479,6 +516,16 @@ export default function AIChat() {
                                                 <div className="md-answer whitespace-pre-wrap">{m.content}</div>
                                             </div>
                                         </div>
+                                    ) : m.type === 'ai_loading' ? (
+                                        <div className="flex justify-start">
+                                            <div className="chat-bubble chat-bubble--ai">
+                                                <div className="typing" aria-label="Завантаження">
+                                                    <span></span>
+                                                    <span></span>
+                                                    <span></span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <div className="flex justify-start">
                                             <div className="chat-bubble chat-bubble--ai">
@@ -512,9 +559,15 @@ export default function AIChat() {
                     </div>
                     <form id="chatForm" ref={formRef} onSubmit={handleSubmit} className="absolute bottom-0 left-0 right-0 flex items-end gap-3 px-4 py-3 sm:py-4 border-t" style={{ background: 'var(--surface-solid)', borderColor: 'var(--border)' }}>
                         <textarea ref={inputRef} onInput={autoGrowTextarea} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }} id="chatInput" name="q" rows={1} placeholder="Опишіть питання… (Shift+Enter — новий рядок)" className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" style={{ overflowY: 'hidden' }}></textarea>
-                        <button id="sendBtn" disabled={!isAuthenticated || isStreaming} aria-disabled={!isAuthenticated || isStreaming ? 'true' : 'false'} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${(isStreaming || !isAuthenticated) ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit" aria-label="Надіслати">
-                            <Send size={18} />
-                        </button>
+                        {isStreaming ? (
+                            <button id="stopBtn" type="button" onClick={abortStream} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${!isAuthenticated ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} aria-label="Зупинити генерацію" disabled={!isAuthenticated} aria-disabled={!isAuthenticated ? 'true' : 'false'}>
+                                <Square size={18} />
+                            </button>
+                        ) : (
+                            <button id="sendBtn" disabled={!isAuthenticated} aria-disabled={!isAuthenticated ? 'true' : 'false'} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${!isAuthenticated ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit" aria-label="Надіслати">
+                                <Send size={18} />
+                            </button>
+                        )}
                     </form>
                 </section>
                 {(!loading && !isAuthenticated) && (

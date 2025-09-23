@@ -174,6 +174,11 @@ export const ChatAPI = {
     async sendMessage(threadId, message) {
         return apiRequest('/chat/message', { method: 'POST', body: { thread_id: threadId, message } });
     },
+    async abort(threadId) {
+        const query = `?thread_id=${encodeURIComponent(threadId)}`
+        // Backend expects POST /chat/abort?thread_id=...
+        return apiRequest(`/chat/abort${query}`, { method: 'POST' })
+    },
     async reactThread(threadId, reactionType) {
         // reactionType: 0 - dislike, 1 - like
         return apiRequest('/thread/reaction', { method: 'POST', body: { thread_id: threadId, reaction_type: Number(reactionType) } })

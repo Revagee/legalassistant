@@ -59,8 +59,9 @@ export function FeatureCard({ href, img, title, text }) {
     )
 }
 
-export function LiquidGlassGrid({ onCardHover, onCardLeave, activeCard }) {
+export function LiquidGlassGrid({ onCardHover, onCardLeave, activeCard, defaultCard }) {
     const gridRef = useRef(null)
+    const activeIdRef = useRef(null)
 
     const featuredItems = useMemo(() => ([
         {
@@ -101,6 +102,28 @@ export function LiquidGlassGrid({ onCardHover, onCardLeave, activeCard }) {
         }
     ]), [])
 
+    // Вспомогательные функции для состояний карточки
+    const applyNeutralState = (item) => {
+        if (!item) return
+        item.style.setProperty('--rotate-x', '0deg')
+        item.style.setProperty('--rotate-y', '0deg')
+        item.style.setProperty('--mouse-x', '50%')
+        item.style.setProperty('--mouse-y', '50%')
+        item.style.setProperty('--glow-x', '50%')
+        item.style.setProperty('--glow-offset', '0px')
+    }
+
+    // "Замороженное" состояние как при наведении в правый верхний угол
+    const applyFrozenActiveState = (item) => {
+        if (!item) return
+        item.style.setProperty('--rotate-x', '-8deg')
+        item.style.setProperty('--rotate-y', '-8deg')
+        item.style.setProperty('--mouse-x', '90%')
+        item.style.setProperty('--mouse-y', '10%')
+        item.style.setProperty('--glow-x', '90%')
+        item.style.setProperty('--glow-offset', '20px')
+    }
+
     useEffect(() => {
         const items = gridRef.current?.querySelectorAll('.liquid-glass-item')
         if (!items) return
@@ -129,12 +152,12 @@ export function LiquidGlassGrid({ onCardHover, onCardLeave, activeCard }) {
         }
 
         const handleMouseLeave = (item) => {
-            item.style.setProperty('--rotate-x', '0deg')
-            item.style.setProperty('--rotate-y', '0deg')
-            item.style.setProperty('--mouse-x', '50%')
-            item.style.setProperty('--mouse-y', '50%')
-            item.style.setProperty('--glow-x', '50%')
-            item.style.setProperty('--glow-offset', '0px')
+            // Если карточка активная — возвращаем её в "замороженное" активное состояние
+            if (item?.dataset?.cardId && item.dataset.cardId === activeIdRef.current) {
+                applyFrozenActiveState(item)
+            } else {
+                applyNeutralState(item)
+            }
 
             onCardLeave?.()
         }
@@ -159,11 +182,30 @@ export function LiquidGlassGrid({ onCardHover, onCardLeave, activeCard }) {
         }
     }, [featuredItems, onCardHover, onCardLeave])
 
+    // Отслеживаем смену активной карточки и обновляем визуальное состояние
+    useEffect(() => {
+        const combinedActiveId = activeCard?.id || defaultCard?.id || null
+        activeIdRef.current = combinedActiveId
+
+        const items = gridRef.current?.querySelectorAll('.liquid-glass-item')
+        if (!items) return
+
+        items.forEach((item) => {
+            if (combinedActiveId && item.dataset.cardId === combinedActiveId) {
+                // Устанавливаем "замороженное" активное состояние, если на карточку не навели мышкой
+                applyFrozenActiveState(item)
+            } else {
+                // Все прочие карточки — в нейтральное
+                applyNeutralState(item)
+            }
+        })
+    }, [activeCard, defaultCard])
+
     return (
         <div className="liquid-glass-grid" ref={gridRef}>
             {featuredItems.map((item, index) => {
                 const IconComponent = item.icon
-                const isActive = activeCard?.id === item.id
+                const isActive = (activeCard?.id || defaultCard?.id) === item.id
 
                 return (
                     <a
@@ -195,7 +237,7 @@ export function InteractiveContent({ activeCard, defaultCard }) {
     if (!displayCard) return null
 
     return (
-        <div className="max-w-lg text-center lg:text-left">
+        <div key={displayCard.id} className="max-w-lg text-center lg:text-left interactive-content">
             <div className="flex items-center gap-3 mb-4">
                 <div className="p-3 rounded-xl" style={{
                     background: 'linear-gradient(135deg, color-mix(in oklab, var(--accent) 20%, transparent), color-mix(in oklab, #22d3ee 15%, transparent))'
@@ -610,9 +652,9 @@ export function Footer() {
 
                 {/* Bottom */}
                 <div className="flex align-center" style={{ borderColor: 'var(--cardBorder)' }}>
-                        <p className="text-sm my-auto" style={{ color: 'var(--muted)' }}>
-                            © {new Date().getFullYear()} Всі права захищені
-                        </p>
+                    <p className="text-sm my-auto" style={{ color: 'var(--muted)' }}>
+                        © {new Date().getFullYear()} Всі права захищені
+                    </p>
                 </div>
             </div>
         </footer>
