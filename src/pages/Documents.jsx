@@ -122,6 +122,24 @@ export default function Documents() {
         return 1
     })()
 
+    const getPreviewUrlFor = (file) => {
+        if (!file) return ''
+        return String(file.ext).toLowerCase() === 'pdf' ? file.path : toPdfPath(file.path)
+    }
+
+    const handleSelect = (file) => {
+        setSelected(file)
+        if (!isDesktop && typeof window !== 'undefined') {
+            const url = getPreviewUrlFor(file)
+            try { window.open(url, '_blank', 'noopener') } catch { /* noop */ }
+            if (typeof window.scrollTo === 'function') {
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+            }
+        } else if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+    }
+
     return (
         <div className={`mx-auto max-w-7xl px-6 py-8`} style={{ overflow: filtersOpen ? 'hidden' : 'auto', height: filtersOpen ? '100vh' : 'auto' }}>
             {!selected && (
@@ -159,11 +177,11 @@ export default function Documents() {
                 <div className="mt-6">
                     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cardsColumns}, minmax(0, 1fr))`, gap: 16 }}>
                         {filtered.map((f) => (
-                            <div key={f.path} className="group rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer" onClick={() => { setSelected(f); if (!isDesktop && typeof window !== 'undefined' && typeof window.scrollTo === 'function') { window.scrollTo({ top: 0, behavior: 'smooth' }) } }}>
+                            <div key={f.path} className="group rounded-xl border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer" onClick={() => handleSelect(f)}>
                                 <div className="flex items-start justify-between gap-3">
                                     <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] text-gray-600" title={f.categoryLabel}>{f.categoryLabel}</span>
                                     <div className="inline-flex items-center gap-1">
-                                        <button type="button" aria-label="Переглянути" onClick={(e) => { e.stopPropagation(); setSelected(f); if (!isDesktop && typeof window !== 'undefined' && typeof window.scrollTo === 'function') { window.scrollTo({ top: 0, behavior: 'smooth' }) } }} className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
+                                        <button type="button" aria-label="Переглянути" onClick={(e) => { e.stopPropagation(); handleSelect(f) }} className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">
                                             <Eye size={14} />
                                         </button>
                                         <a aria-label="Завантажити" href={f.path} download onClick={(e) => e.stopPropagation()} className="inline-flex items-center justify-center h-7 w-7 rounded-md bg-[var(--accent)] text-white hover:opacity-90">
@@ -219,7 +237,7 @@ export default function Documents() {
                             <div className={isDesktop ? 'h-full overflow-auto p-3' : 'p-3'}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                                     {filtered.map((f) => (
-                                        <button key={f.path} type="button" onClick={() => { setSelected(f); if (!isDesktop && typeof window !== 'undefined' && typeof window.scrollTo === 'function') { window.scrollTo({ top: 0, behavior: 'smooth' }) } }} className="text-left rounded-lg border border-gray-100 p-3 hover:bg-gray-50">
+                                        <button key={f.path} type="button" onClick={() => handleSelect(f)} className="text-left rounded-lg border border-gray-100 p-3 hover:bg-gray-50">
                                             <div className="flex items-start justify-between gap-2">
                                                 <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] text-gray-600" title={f.categoryLabel}>{f.categoryLabel}</span>
                                                 <span className="text-[11px] text-gray-500">{f.ext.toUpperCase()}</span>
