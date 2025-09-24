@@ -45,6 +45,8 @@ export default function AIChat() {
         const n = String(name || '').trim()
         if (!n) return ''
         if (n === 'LegalCorpusSearch') return 'Шукаю у законодавчій базі'
+        if (n === 'SearchInCodes') return 'Шукаю інформацію у кодексах'
+        if (n === 'SearchInConstitution') return 'Шукаю інформацію у конституції'
         return 'Шукаю в Інтернеті'
     }
 
@@ -207,8 +209,9 @@ export default function AIChat() {
             }
         }
 
-        es.addEventListener('chunk', onChunk)
+        es.addEventListener('chunk', onChunk);
         setCurrentStatus('writing')
+        console.log('[AIChat][Status]', currentStatus)
         const persistSourcesToLastMessage = () => {
             if (!sourcesBuffer || sourcesBuffer.length === 0) return
             setMessages((prev) => {
@@ -239,6 +242,7 @@ export default function AIChat() {
             if (raw === 'end') {
                 // Сохраняем источники в последнее AI-сообщение
                 setCurrentStatus('not working')
+                console.log('[AIChat][Status]', currentStatus)
                 persistSourcesToLastMessage()
                 // Помечаем последнее AI-сообщение как завершённое
                 setMessages((prev) => {
@@ -284,6 +288,8 @@ export default function AIChat() {
             }
 
             if (raw === 'message_ended') {
+                setCurrentStatus('message_ended')
+                console.log('[AIChat][Status]', currentStatus)
                 setMessages((prev) => {
                     const next = [...prev]
                     if (next.length && next[next.length - 1].type === 'ai') {
@@ -295,6 +301,7 @@ export default function AIChat() {
         })
         es.addEventListener('tool_call', (ev) => {
             setCurrentStatus('using tool')
+            console.log('[AIChat][Status]', currentStatus)
             console.log('[AIChat][SSE tool_call]', ev.data)
             const text = String(ev.data || '').trim()
             setToolCallText(text)
@@ -690,7 +697,7 @@ export default function AIChat() {
                                                         ))}
                                                     </div>
                                                 ) : null)}
-                                                {m.finished && (
+                                                {m.finished && (idx !== messages.length - 1 || !isStreaming) && (
                                                     <div className="mt-2 flex items-center gap-2 opacity-80">
                                                         <button type="button" title="Копіювати" className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded border border-gray-200 hover:bg-gray-50" onClick={() => copyMessage(m.content, idx)}>
                                                             {copiedIdx === idx ? <Check size={14} /> : <Copy size={14} />}
