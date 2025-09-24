@@ -14,12 +14,12 @@ function toPdfPath(filePath) {
     }
 }
 
-function PdfPreview({ url, isMobile }) {
+function PdfPreview({ url }) {
     if (!url) return null
     return (
-        <div className="w-full h-full">
-            <object data={`${url}#toolbar=1&view=FitH`} type="application/pdf" width="100%" height="100%">
-                <embed src={`${url}#toolbar=1&view=FitH`} type="application/pdf" width="100%" height="100%" />
+        <div className="w-full h-full bg-white" style={{ background: '#fff' }}>
+            <object data={`${url}#toolbar=1&view=FitH`} type="application/pdf" width="100%" height="100%" className='bg-white' style={{ background: '#fff' }}>
+                <embed src={`${url}#toolbar=1&view=FitH`} type="application/pdf" width="100%" height="100%" className='bg-white' style={{ background: '#fff' }} />
                 <div className="p-4 text-sm text-gray-600">
                     Не вдалось відобразити PDF на цьому пристрої.{' '}
                     <a href={url} target="_blank" rel="noopener" className="text-[var(--accent)] underline">Відкрити у новій вкладці</a>
@@ -52,30 +52,7 @@ export default function Documents() {
         return toPdfPath(selected.path)
     }, [selected])
 
-    // Проверяем, доступен ли PDF по previewUrl
-    const [pdfAvailable, setPdfAvailable] = useState(null) // null=не проверено, true/false
-    useEffect(() => {
-        let cancelled = false
-        const controller = new AbortController()
-        setPdfAvailable(null)
-        if (!selected) return
-        const ext = String(selected.ext || '').toLowerCase()
-        if (ext === 'pdf') {
-            setPdfAvailable(true)
-            return
-        }
-        const check = async () => {
-            try {
-                const res = await fetch(previewUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal })
-                if (!cancelled) setPdfAvailable(res.ok)
-            } catch {
-                if (controller.signal.aborted) return
-                if (!cancelled) setPdfAvailable(false)
-            }
-        }
-        if (previewUrl) check()
-        return () => { cancelled = true; controller.abort() }
-    }, [previewUrl, selected])
+    // Мобильный режим: не встраиваем превью, предлагаем открыть PDF у новій вкладці
 
     useEffect(() => {
         const onResize = () => setViewportWidth(window.innerWidth)
@@ -271,18 +248,14 @@ export default function Documents() {
                                     <button type="button" onClick={() => setSelected(null)} className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"><X size={14} /></button>
                                 </div>
                             </div>
-                            <div className="mt-3 rounded-md border border-gray-100 overflow-hidden" style={{ height: isDesktop ? 'calc(100% - 48px)' : '60vh', width: '100%', maxWidth: 900, marginLeft: 'auto', marginRight: 'auto' }}>
-                                {pdfAvailable === null && (
-                                    <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">Перевірка файлу…</div>
-                                )}
-                                {pdfAvailable === true && (
-                                    <PdfPreview url={previewUrl} isMobile={!isDesktop} />
-                                )}
-                                {pdfAvailable === false && (
-                                    <div className="w-full h-full flex items-center justify-center text-center p-4 text-sm text-gray-600">
-                                        Не знайдено одноіменний PDF для перегляду.{' '}
+                            <div className="mt-3 rounded-md border border-gray-100 overflow-hidden bg-white" style={{ height: isDesktop ? 'calc(100% - 48px)' : '60vh', width: '100%', maxWidth: 900, marginLeft: 'auto', marginRight: 'auto', background: '#fff' }}>
+                                {!isDesktop ? (
+                                    <div className="w-full h-full flex flex-col items-center justify-center text-center p-4 text-sm text-gray-600 bg-white" style={{ background: '#fff' }}>
+                                        Попередній перегляд на мобільних не підтримується.{' '}
                                         <a href={previewUrl} target="_blank" rel="noopener" className="text-[var(--accent)] underline">Відкрити PDF у новій вкладці</a>
                                     </div>
+                                ) : (
+                                    <PdfPreview url={previewUrl} />
                                 )}
                             </div>
                         </div>
