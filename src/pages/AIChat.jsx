@@ -19,7 +19,7 @@ export default function AIChat() {
     const [activeId, setActiveId] = useState(null)
     const [messages, setMessages] = useState([])
     const [isStreaming, setIsStreaming] = useState(false)
-    const [toolCallText, setToolCallText] = useState('')
+    const [activeTools, setActiveTools] = useState([])
     const [currentSources, setCurrentSources] = useState([])
     const [copiedIdx, setCopiedIdx] = useState(null)
     const [shareOpen, setShareOpen] = useState(false)
@@ -121,7 +121,7 @@ export default function AIChat() {
         try { if (esRef.current) esRef.current.close() } catch { /* ignore */ }
         esRef.current = null
         setIsStreaming(false)
-        setToolCallText('')
+        setActiveTools([])
         setCurrentSources([])
     }
 
@@ -181,7 +181,7 @@ export default function AIChat() {
                 return next
             })
             started = true
-            if (toolCallText) setToolCallText('')
+            // keep activeTools shown even when chunks start coming
             if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
         }
         const onChunk = (ev) => {
@@ -194,7 +194,7 @@ export default function AIChat() {
                 console.log('[AIChat][Chunk message]', ev.data)
                 appendAiChunk(ev.data)
                 // Как только пришёл контент — убираем плашку инструмента и прикрепим источники
-                if (toolCallText) setToolCallText('')
+                // keep activeTools until system:end or error
                 // Прикрепим уже накопленные источники к текущему сообщению
                 if (sourcesBuffer.length) {
                     setMessages((prev) => {
@@ -242,6 +242,7 @@ export default function AIChat() {
             if (raw === 'end') {
                 // Сохраняем источники в последнее AI-сообщение
                 setCurrentStatus('not working')
+                setActiveTools([])
                 console.log('[AIChat][Status]', currentStatus)
                 persistSourcesToLastMessage()
                 // Помечаем последнее AI-сообщение как завершённое
@@ -304,7 +305,8 @@ export default function AIChat() {
             console.log('[AIChat][Status]', currentStatus)
             console.log('[AIChat][SSE tool_call]', ev.data)
             const text = String(ev.data || '').trim()
-            setToolCallText(text)
+            if (!text) return
+            setActiveTools((prev) => (prev.includes(text) ? prev : [...prev, text]))
         })
         es.addEventListener('source', (ev) => {
             console.log('[AIChat][Source incoming]', ev.data)
@@ -659,13 +661,20 @@ export default function AIChat() {
                                                         <span></span>
                                                         <span></span>
                                                     </div>
-                                                    {idx === messages.length - 1 && toolCallText ? (
+                                                    {idx === messages.length - 1 && activeTools.length > 0 ? (
                                                         <div className="tool-call-ui">
                                                             <span className="tool-call-spinner" />
-                                                            <span className="tool-call-text">{getToolLabel(toolCallText)}</span>
+                                                            <span className="tool-call-text">{activeTools.map(getToolLabel).join(' • ')}</span>
                                                         </div>
                                                     ) : null}
                                                 </div>
+                                                {idx === messages.length - 1 && currentSources && currentSources.length > 0 ? (
+                                                    <div className="source-chips mt-2">
+                                                        {currentSources.map((s, i) => (
+                                                            <div key={i} className="source-chip"><FileText size={14} />{s}</div>
+                                                        ))}
+                                                    </div>
+                                                ) : null}
                                             </div>
                                         </div>
                                     ) : (
@@ -677,10 +686,10 @@ export default function AIChat() {
                                                     </MarkdownRenderer>
                                                 </div>
 
-                                                {idx === messages.length - 1 && toolCallText && currentStatus === 'using tool' ? (
+                                                {idx === messages.length - 1 && activeTools.length > 0 && currentStatus === 'using tool' ? (
                                                     <div className="tool-call-ui">
                                                         <span className="tool-call-spinner" />
-                                                        <span className="tool-call-text">{getToolLabel(toolCallText)}</span>
+                                                        <span className="tool-call-text">{activeTools.map(getToolLabel).join(' • ')}</span>
                                                     </div>
                                                 ) : null}
                                                 {/* Источники: онлайн для текущего ответа или из сохранённых в сообщении */}

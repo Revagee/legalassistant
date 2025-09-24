@@ -14,13 +14,18 @@ function toPdfPath(filePath) {
     }
 }
 
-function PdfPreview({ url }) {
+function PdfPreview({ url, isMobile }) {
+    if (!url) return null
     return (
-        <iframe
-            title="pdf-preview"
-            src={`${url}#toolbar=1&view=FitH`}
-            className="w-full h-full"
-        />
+        <div className="w-full h-full">
+            <object data={`${url}#toolbar=1&view=FitH`} type="application/pdf" width="100%" height="100%">
+                <embed src={`${url}#toolbar=1&view=FitH`} type="application/pdf" width="100%" height="100%" />
+                <div className="p-4 text-sm text-gray-600">
+                    Не вдалось відобразити PDF на цьому пристрої.{' '}
+                    <a href={url} target="_blank" rel="noopener" className="text-[var(--accent)] underline">Відкрити у новій вкладці</a>
+                </div>
+            </object>
+        </div>
     )
 }
 
@@ -40,8 +45,37 @@ export default function Documents() {
             .catch((e) => console.error('Failed to load manifest', e))
     }, [])
 
-    // Проверяем наличие PDF-файла с тем же именем в подпапке pdf
-    const pdfUrl = useMemo(() => (selected ? toPdfPath(selected.path) : ''), [selected])
+    // URL для предпросмотра: всегда целимся в одноимённый PDF (если выбран уже PDF — используем его путь)
+    const previewUrl = useMemo(() => {
+        if (!selected) return ''
+        if (String(selected.ext).toLowerCase() === 'pdf') return selected.path
+        return toPdfPath(selected.path)
+    }, [selected])
+
+    // Проверяем, доступен ли PDF по previewUrl
+    const [pdfAvailable, setPdfAvailable] = useState(null) // null=не проверено, true/false
+    useEffect(() => {
+        let cancelled = false
+        const controller = new AbortController()
+        setPdfAvailable(null)
+        if (!selected) return
+        const ext = String(selected.ext || '').toLowerCase()
+        if (ext === 'pdf') {
+            setPdfAvailable(true)
+            return
+        }
+        const check = async () => {
+            try {
+                const res = await fetch(previewUrl, { method: 'HEAD', cache: 'no-store', signal: controller.signal })
+                if (!cancelled) setPdfAvailable(res.ok)
+            } catch {
+                if (controller.signal.aborted) return
+                if (!cancelled) setPdfAvailable(false)
+            }
+        }
+        if (previewUrl) check()
+        return () => { cancelled = true; controller.abort() }
+    }, [previewUrl, selected])
 
     useEffect(() => {
         const onResize = () => setViewportWidth(window.innerWidth)
@@ -238,7 +272,18 @@ export default function Documents() {
                                 </div>
                             </div>
                             <div className="mt-3 rounded-md border border-gray-100 overflow-hidden" style={{ height: isDesktop ? 'calc(100% - 48px)' : '60vh', width: '100%', maxWidth: 900, marginLeft: 'auto', marginRight: 'auto' }}>
-                                <PdfPreview url={pdfUrl} />
+                                {pdfAvailable === null && (
+                                    <div className="w-full h-full flex items-center justify-center text-sm text-gray-500">Перевірка файлу…</div>
+                                )}
+                                {pdfAvailable === true && (
+                                    <PdfPreview url={previewUrl} isMobile={!isDesktop} />
+                                )}
+                                {pdfAvailable === false && (
+                                    <div className="w-full h-full flex items-center justify-center text-center p-4 text-sm text-gray-600">
+                                        Не знайдено одноіменний PDF для перегляду.{' '}
+                                        <a href={previewUrl} target="_blank" rel="noopener" className="text-[var(--accent)] underline">Відкрити PDF у новій вкладці</a>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </aside>
