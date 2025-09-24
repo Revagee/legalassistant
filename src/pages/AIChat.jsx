@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import MarkdownRenderer from '../components/MarkdownRenderer.jsx'
 import { useAuth } from '../lib/authContext.jsx'
-import { ChatAPI, getBaseUrl } from '../lib/api.js'
+import { ChatAPI, getStreamBaseUrl } from '../lib/api.js'
 import { Trash2, Pencil, Send, ThumbsUp, ThumbsDown, Copy, Check, Share2, FileText, Mail, MessageCircle, MessageSquare, Square } from 'lucide-react'
 
 export default function AIChat() {
@@ -136,9 +136,14 @@ export default function AIChat() {
         console.log('[AIChat][openStream]', threadId, options)
         const { showLoadingPlaceholder = false } = options
         if (!threadId || !isAuthenticated) return
-        const base = getBaseUrl()
-        const url = new URL((base.startsWith('http') ? base : window.location.origin + base) + '/chat/stream')
+        // Для стрима используем отдельный base URL, чтобы обойти CDN/буферизацию
+        const base = getStreamBaseUrl()
+        const originBase = base.startsWith('http') ? base : window.location.origin + base
+        const url = new URL(originBase + '/chat/stream')
         url.searchParams.set('thread_id', threadId)
+        // предотвращаем кеш и даём подсказку прокси не буферизовать
+        url.searchParams.set('_', Date.now().toString())
+        // EventSource не позволяет явно задать заголовки, но query + серверные заголовки помогут
         const es = new EventSource(url.toString())
         esRef.current = es;
         setIsStreaming(true)

@@ -1,6 +1,16 @@
 {
     "routes": [
         {
+            "src": "/api/chat/stream",
+            "dest": "https://legal-ai-api-35dc5cd4fd8d.herokuapp.com/chat/stream",
+            "headers": {
+                "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0, s-maxage=0, proxy-revalidate, no-transform",
+                "Pragma": "no-cache",
+                "Expires": "0",
+                "X-Accel-Buffering": "no"
+            }
+        },
+        {
             "src": "/api/(.*)",
             "dest": "https://legal-ai-api-35dc5cd4fd8d.herokuapp.com/$1"
         },

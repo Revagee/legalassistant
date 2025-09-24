@@ -18,6 +18,17 @@ export function getBaseUrl() {
     }
 }
 
+// Separate base URL for streaming endpoints. Allows bypassing CDN (e.g., Vercel) if needed.
+export function getStreamBaseUrl() {
+    try {
+        const envUrl = import.meta?.env?.VITE_STREAM_API_URL;
+        if (envUrl && String(envUrl).trim()) return String(envUrl).trim();
+        return getBaseUrl();
+    } catch {
+        return getBaseUrl();
+    }
+}
+
 export function getStoredToken() {
     try {
         return localStorage.getItem('auth_token') || '';
