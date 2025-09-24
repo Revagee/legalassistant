@@ -23,6 +23,12 @@ export function getStreamBaseUrl() {
     try {
         const envUrl = import.meta?.env?.VITE_STREAM_API_URL;
         if (envUrl && String(envUrl).trim()) return String(envUrl).trim();
+        // Если базовый URL указывает на прокси '/api' (прод на Vercel), обходим его
+        if (typeof window !== 'undefined') {
+            const host = window.location?.hostname || '';
+            const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+            if (!isLocalhost) return DEFAULT_BASE_URL;
+        }
         return getBaseUrl();
     } catch {
         return getBaseUrl();
