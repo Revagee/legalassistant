@@ -1,15 +1,51 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import MarkdownRenderer from '../components/MarkdownRenderer.jsx'
+import DocumentSidebar from '../components/DocumentSidebar.jsx'
 import { useAuth } from '../lib/authContext.jsx'
 import { ChatAPI, getStreamBaseUrl } from '../lib/api.js'
-import { Trash2, Pencil, Send, ThumbsUp, ThumbsDown, Copy, Check, Share2, FileText, Mail, MessageCircle, MessageSquare, Square } from 'lucide-react'
+import { Trash2, Pencil, Send, ThumbsUp, ThumbsDown, Copy, Check, Share2, FileText, Mail, MessageCircle, MessageSquare, Square, PanelLeftClose, PanelLeft, Plus, ArrowUp, CornerDownRight, CornerDownLeft, CheckCircle2, X } from 'lucide-react'
+
+// Компонент для отображения текста с подсвеченными цитатами
+function HighlightedText({ content, highlights, messageId }) {
+    if (!highlights || !highlights.length) {
+        return <MarkdownRenderer>{content}</MarkdownRenderer>
+    }
+
+    // Фильтруем выделения для текущего сообщения
+    const messageHighlights = highlights.filter(h => h.messageId === messageId)
+
+    if (!messageHighlights.length) {
+        return <MarkdownRenderer>{content}</MarkdownRenderer>
+    }
+
+    // Для простоты пока рендерим обычный Markdown, но добавляем к нему визуальные индикаторы
+    // В будущем можно реализовать более сложную логику для точного позиционирования выделений
+    return (
+        <div className="relative">
+            <MarkdownRenderer>{content}</MarkdownRenderer>
+            {messageHighlights.length > 0 && (
+                <div className="citation-indicators">
+                    {messageHighlights.map(highlight => (
+                        <span
+                            key={highlight.id}
+                            className="citation-marker"
+                            title={`Цитата: "${highlight.text}"`}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
+
 
 export default function AIChat() {
     const bodyRef = useRef(null)
     const inputRef = useRef(null)
     const formRef = useRef(null)
     const esRef = useRef(null)
+    const copyToastTimerRef = useRef(null)
     const hasProcessedQueryRef = useRef(false)
     const initialHasQRef = useRef(!!(new URLSearchParams(window.location.search || '').get('q')))
     const [drawerOpen, setDrawerOpen] = useState(false)
@@ -25,6 +61,15 @@ export default function AIChat() {
     const [shareOpen, setShareOpen] = useState(false)
     const [shareContent, setShareContent] = useState('')
     const [threadReaction, setThreadReaction] = useState(null) // 1 like, 0 dislike, null none
+    const [copyToastVisible, setCopyToastVisible] = useState(false)
+    const [copyToastProgress, setCopyToastProgress] = useState(0)
+
+    // Document sidebar state
+    const [sidebarOpen, setSidebarOpen] = useState(false)
+    const [currentDocument, setCurrentDocument] = useState(null)
+
+    // Chat sidebar state
+    const [chatSidebarOpen, setChatSidebarOpen] = useState(true)
 
     // Rename modal state
     const [renameOpen, setRenameOpen] = useState(false)
@@ -32,6 +77,19 @@ export default function AIChat() {
     const [renameTarget, setRenameTarget] = useState({ id: null, name: '' })
     const [renameName, setRenameName] = useState('')
     const [currentStatus, setCurrentStatus] = useState('not working')
+
+    // Context menu state
+    const [contextMenuOpen, setContextMenuOpen] = useState(false)
+    const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 })
+    const [selectedText, setSelectedText] = useState('')
+    const [_sourceMessageId, setSourceMessageId] = useState(null)
+    const [sourceDocument, setSourceDocument] = useState(null)
+
+    // Quote state
+    const [quoteText, setQuoteText] = useState('')
+    const [quoteFromDocument, setQuoteFromDocument] = useState(null)
+    const [persistentHighlights, setPersistentHighlights] = useState([])
+    const [quoteSourceMessageId, setQuoteSourceMessageId] = useState(null)
 
     function normalizeMarkdownText(input) {
         const text = String(input ?? '')
@@ -50,6 +108,120 @@ export default function AIChat() {
         return 'Шукаю в Інтернеті'
     }
 
+
+    function SelectionAskPopup({ containerRef }) {
+        const [open, setOpen] = useState(false)
+        const [pos, setPos] = useState({ x: 0, y: 0 })
+        const [selText, setSelText] = useState('')
+        const savedRangeRef = useRef(null)
+        const pointerDownRef = useRef(false)
+
+        const positionFromRange = (range) => {
+            if (!range || typeof range.getBoundingClientRect !== 'function') return
+            const rect = range.getBoundingClientRect()
+            const menuW = 180
+            const menuH = 40
+            let x = rect.left + rect.width / 2 - menuW / 2
+            let y = rect.top - menuH - 8
+            if (y < 8) y = rect.bottom + 8
+            const minX = 8
+            const maxX = window.innerWidth - menuW - 8
+            x = Math.min(Math.max(x, minX), maxX)
+            setPos({ x, y })
+        }
+
+        useEffect(() => {
+            const isInsideAiBubble = (node) => {
+                const container = containerRef?.current
+                if (!container || !node) return false
+                let el = node.nodeType === 3 ? node.parentNode : node
+                while (el) {
+                    if (el.classList && el.classList.contains('chat-bubble--ai')) return true
+                    if (el === container) break
+                    el = el.parentNode
+                }
+                return false
+            }
+
+            const onPointerDown = () => { pointerDownRef.current = true }
+            const onPointerUp = () => {
+                pointerDownRef.current = false
+                const sel = window.getSelection()
+                const text = String(sel?.toString() || '').trim()
+                if (!text) { setOpen(false); return }
+                if (!isInsideAiBubble(sel.anchorNode) && !isInsideAiBubble(sel.focusNode)) { setOpen(false); return }
+                try { savedRangeRef.current = sel.rangeCount ? sel.getRangeAt(0).cloneRange() : null } catch { savedRangeRef.current = null }
+                setSelText(text)
+                if (savedRangeRef.current) {
+                    positionFromRange(savedRangeRef.current)
+                    setOpen(true)
+                }
+            }
+
+            document.addEventListener('pointerdown', onPointerDown, true)
+            document.addEventListener('pointerup', onPointerUp, true)
+            return () => {
+                document.removeEventListener('pointerdown', onPointerDown, true)
+                document.removeEventListener('pointerup', onPointerUp, true)
+            }
+        }, [containerRef])
+
+        useLayoutEffect(() => {
+            if (!open) return
+            const onScrollOrResize = () => {
+                if (!savedRangeRef.current) return
+                positionFromRange(savedRangeRef.current)
+            }
+            window.addEventListener('scroll', onScrollOrResize, true)
+            window.addEventListener('resize', onScrollOrResize, true)
+            return () => {
+                window.removeEventListener('scroll', onScrollOrResize, true)
+                window.removeEventListener('resize', onScrollOrResize, true)
+            }
+        }, [open])
+
+        useEffect(() => {
+            if (!open) return
+            const onDocClick = (e) => {
+                const target = e.target
+                if (target.closest && target.closest('.ask-popup')) return
+                setOpen(false)
+            }
+            setTimeout(() => {
+                document.addEventListener('click', onDocClick, true)
+                document.addEventListener('contextmenu', onDocClick, true)
+            }, 0)
+            return () => {
+                document.removeEventListener('click', onDocClick, true)
+                document.removeEventListener('contextmenu', onDocClick, true)
+            }
+        }, [open])
+
+        if (!open) return null
+
+        return createPortal(
+            <div
+                className="ask-popup fixed z-[9999] rounded-full border px-3 py-2 text-xs shadow-lg flex items-center gap-2 hover:bg-surface hover:border-accent hover:cursor-pointer"
+                style={{
+                    left: pos.x,
+                    top: pos.y,
+                    background: 'var(--surface-solid)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--ink)'
+                }}
+                onClick={() => {
+                    setQuoteText(selText)
+                    setQuoteFromDocument(null)
+                    setOpen(false)
+                }}
+                onMouseDown={(e) => e.preventDefault()}
+            >
+                <Send size={14} />
+                <span>Спитати у ШІ</span>
+            </div>,
+            document.body
+        )
+    }
 
     function threadTimestamp(thread) {
         return thread?.last_activity_time || new Date().toISOString()
@@ -379,6 +551,7 @@ export default function AIChat() {
             await navigator.clipboard.writeText(String(text || ''))
             setCopiedIdx(index)
             setTimeout(() => setCopiedIdx(null), 2000)
+            showCopyToast()
         } catch { /* ignore */ }
     }
 
@@ -386,6 +559,48 @@ export default function AIChat() {
         setShareContent(String(text || ''))
         setShareOpen(true)
     }
+
+    function openDocumentInSidebar(document) {
+        setCurrentDocument(document)
+        setSidebarOpen(true)
+    }
+
+    function closeSidebar() {
+        setSidebarOpen(false)
+        setCurrentDocument(null)
+    }
+
+    function toggleChatSidebar() {
+        setChatSidebarOpen(!chatSidebarOpen)
+    }
+
+    function clearQuote() {
+        setQuoteText('')
+        setQuoteFromDocument(null)
+        setQuoteSourceMessageId(null)
+        try { console.log('[Quote][clear]') } catch { /* ignore */ }
+    }
+
+    function handleContextMenu(e, messageIndex, documentId) {
+        try { e.preventDefault() } catch { /* ignore */ }
+        const sel = window.getSelection && window.getSelection()
+        const text = String(sel && sel.toString ? sel.toString() : '').trim()
+        if (!text) return
+        setSelectedText(text)
+        setSourceDocument(documentId || null)
+        setSourceMessageId(messageIndex != null ? messageIndex : null)
+        setContextMenuPosition({ x: e.clientX || 0, y: e.clientY || 0 })
+        setContextMenuOpen(true)
+    }
+
+    function handleQuoteSelected() {
+        if (!selectedText) { setContextMenuOpen(false); return }
+        setQuoteText(selectedText)
+        setQuoteFromDocument(sourceDocument || null)
+        setContextMenuOpen(false)
+    }
+
+
 
     async function handleRenameThread(threadId, currentName) {
         if (!isAuthenticated) return
@@ -460,14 +675,25 @@ export default function AIChat() {
             setThreads((prev) => [{ id: newId, chat_name: 'New Chat', last_activity_time: new Date().toISOString() }, ...prev])
         }
 
-        // Append user message immediately
-        setMessages((prev) => [...prev, { type: 'human', content: value }])
+        // Append user message immediately, вместе с локальной цитатой для UI
+        setMessages((prev) => [...prev, { type: 'human', content: value, quote: quoteText || null, quote_message_id: quoteSourceMessageId || null }])
         if (el) {
             el.value = ''
             autoGrowTextarea()
         }
 
-        await ChatAPI.sendMessage(threadId, value).catch(() => { })
+        // Подготавливаем данные для отправки с возможным цитированием
+        const messageData = {
+            message: value,
+            quote: quoteText || null,
+            from_document: quoteFromDocument || null
+        }
+        try { console.log('[Quote][sendMessage] payload', messageData) } catch { /* ignore */ }
+
+        await ChatAPI.sendMessage(threadId, messageData).catch(() => { })
+
+        // Очищаем цитирование после отправки
+        clearQuote()
 
         // Открываем стрим и показываем плейсхолдер до первого чанка
         openStream(threadId, { showLoadingPlaceholder: true })
@@ -477,16 +703,58 @@ export default function AIChat() {
         if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
     }, [messages])
 
-    // Markdown теперь рендерится напрямую в JSX через dangerouslySetInnerHTML
+    // Гарантируем, что нижний отступ и скролл обновляются при изменении высоты формы (в т.ч. при появлении цитаты)
+    useLayoutEffect(() => {
+        const bodyEl = bodyRef.current
+        const formEl = formRef.current
+        if (!bodyEl) return
 
-    useEffect(() => {
-        // Инициализируем динамический нижний отступ и обновляем при ресайзе
-        function onResize() { updateChatBottomPadding() }
-        updateChatBottomPadding()
-        window.addEventListener('resize', onResize)
-        return () => window.removeEventListener('resize', onResize)
+        const apply = () => {
+            updateChatBottomPadding()
+            bodyEl.scrollTop = bodyEl.scrollHeight
+        }
+
+        // Первый запуск после монтирования
+        try { requestAnimationFrame(apply) } catch { setTimeout(apply, 0) }
+
+        let ro = null
+        if (typeof ResizeObserver !== 'undefined' && formEl) {
+            try {
+                ro = new ResizeObserver(() => apply())
+                ro.observe(formEl)
+            } catch { /* ignore */ }
+        } else {
+            window.addEventListener('resize', apply)
+        }
+
+        return () => {
+            if (ro) {
+                try { ro.disconnect() } catch { /* ignore */ }
+            } else {
+                window.removeEventListener('resize', apply)
+            }
+        }
     }, [])
 
+    // Показ меню при выделении (desktop/mobile) с задержкой и сохранением выделения
+
+    function showCopyToast() {
+        try { if (copyToastTimerRef.current) clearInterval(copyToastTimerRef.current) } catch { /* ignore */ }
+        setCopyToastVisible(true)
+        setCopyToastProgress(100)
+        const startedAt = Date.now()
+        const duration = 2000
+        copyToastTimerRef.current = setInterval(() => {
+            const elapsed = Date.now() - startedAt
+            const pct = Math.max(0, 100 - Math.round(elapsed / duration * 100))
+            setCopyToastProgress(pct)
+            if (elapsed >= duration) {
+                try { clearInterval(copyToastTimerRef.current) } catch { /* ignore */ }
+                copyToastTimerRef.current = null
+                setCopyToastVisible(false)
+            }
+        }, 50)
+    }
     useEffect(() => {
         let mounted = true
             ; (async function init() {
@@ -523,7 +791,7 @@ export default function AIChat() {
             if (!q) return
             hasProcessedQueryRef.current = true
             // Отправляем q в новый тред без привязки к текущему активному
-            handleSubmit({ preventDefault: () => { } }, { forceNewThread: true, initialContent: q })
+            handleSubmit({ preventDefault: function () { /* no-op */ } }, { forceNewThread: true, initialContent: q })
             // Очищаем q из URL, чтобы не переотправлять при навигации
             try {
                 const url = new URL(window.location.href)
@@ -533,6 +801,20 @@ export default function AIChat() {
         } catch { /* ignore */ }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAuthenticated, loading])
+
+    // Очистка старых выделений (старше 5 минут)
+    useEffect(() => {
+        const cleanupInterval = setInterval(() => {
+            const now = Date.now()
+            const maxAge = 5 * 60 * 1000 // 5 минут
+
+            setPersistentHighlights(prev =>
+                prev.filter(highlight => now - highlight.timestamp < maxAge)
+            )
+        }, 60000) // Проверяем каждую минуту
+
+        return () => clearInterval(cleanupInterval)
+    }, [])
 
     return (
         <div className="h-full min-h-0 flex flex-col">
@@ -579,11 +861,27 @@ export default function AIChat() {
             )}
 
             <div className="flex h-full max-w-[100%] relative min-h-0" style={{ padding: '0' }}>
-                <aside className="hidden md:block md:w-72 lg:w-80 shrink-0" style={{ borderRight: '1px solid var(--border)' }}>
+                <aside
+                    className={`hidden md:block transition-all duration-300 ease-in-out ${chatSidebarOpen ? 'md:w-72 lg:w-80' : 'w-0'
+                        } shrink-0 overflow-hidden`}
+                    style={{ borderRight: '1px solid var(--border)' }}
+                >
                     <div className="p-4">
                         <div className="mb-3 flex items-center justify-between">
                             <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Останні запити</div>
-                            <button type="button" onClick={handleNewChat} className="text-xs font-medium hover:underline" style={{ color: 'var(--accent)' }}>Новий чат</button>
+                            <div className="flex items-center gap-2">
+                                <button type="button" onClick={handleNewChat} className="text-xs font-medium hover:underline" style={{ color: 'var(--accent)' }}>
+                                    <Plus size={16} style={{ color: 'var(--muted)' }} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={toggleChatSidebar}
+                                    className="p-1 rounded-md hover:bg-surface transition-colors"
+                                    aria-label="Сховати чати"
+                                >
+                                    <PanelLeftClose size={16} style={{ color: 'var(--muted)' }} />
+                                </button>
+                            </div>
                         </div>
                         <div className="space-y-4">
                             {threads && threads.length > 0 ? (
@@ -619,6 +917,17 @@ export default function AIChat() {
                 <section className="relative flex h-full min-h-0 flex-1 flex-col">
                     <div className="mb-2 flex items-center justify-between px-4 pt-2">
                         <div className="flex items-center gap-3">
+                            {!chatSidebarOpen && (
+                                <button
+                                    type="button"
+                                    onClick={toggleChatSidebar}
+                                    className="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors text-sm font-medium"
+                                    aria-label="Показати чати"
+                                >
+                                    <PanelLeft size={16} style={{ color: 'var(--accent)' }} />
+                                    <span style={{ color: 'var(--accent)' }}>Чати</span>
+                                </button>
+                            )}
                             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight pt-2" style={{ color: 'var(--accent)' }}>Юридичний ШІ</h1>
                             {isAuthenticated && activeId ? (
                                 <div className="flex items-center gap-2 ml-2">
@@ -627,6 +936,26 @@ export default function AIChat() {
                                     </button>
                                     <button type="button" aria-label="Dislike thread" className={`inline-flex items-center justify-center h-8 w-8 rounded-full border ${threadReaction === 0 ? 'bg-red-50 border-red-300' : 'border-gray-200'}`} onClick={() => handleThreadReaction(0)}>
                                         <ThumbsDown size={16} color={threadReaction === 0 ? '#dc2626' : 'currentColor'} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        aria-label="Тест сайдбара"
+                                        className="inline-flex items-center justify-center h-8 px-3 rounded-md border border-gray-200 hover:bg-gray-50 text-xs font-medium"
+                                        onClick={() => {
+                                            const testLaw = {
+                                                "id": "009557fd-d8e8-416a-841c-a736e14b0de9",
+                                                "title": "Про внесення змін до Закону України \"Про використання ядерної енергії та радіаційну безпеку\"",
+                                                "code": "2762-IX",
+                                                "edition": 1,
+                                                "date": "2022-11-16",
+                                                "in_force": true,
+                                                "text_html": "<div id=\"article\" class=\"valid\" data-goto=\"Text\">\n<div style=\"width:660px;max-width:100%;margin:0 auto\">\n<link rel=\"stylesheet\" type=\"text/css\" href=\"https://zakon.rada.gov.ua/laws/file/util/0/u_text.css\" async />\n<div class=\"rvts0\"><div class=rvps8><a name=\"n2\" data-tree=\"ty_1\" class=clear></a>\n<table width=\"100%\" border=0 cellpadding=0 cellspacing=0>\n<tr valign=top>\n<td>\n<p class=rvps7><img alt=\"\" hspace=1 vspace=1 src=\"https://zakonst.rada.gov.ua/images/gerb.gif\" title=\"Герб України\"></p>\n</td>\n</tr>\n<tr valign=top>\n<td>\n<p class=rvps17><span class=rvts78>ЗАКОН УКРАЇНИ</span></p>\n</td>\n</tr>\n</table>\n</div>\n<p class=rvps6><a name=\"n3\" data-tree=\"nz_1\"></a>\n<span class=rvts23>Про внесення змін до Закону України \"Про використання ядерної енергії та радіаційну безпеку\"</span></p>\n<em><p class=rvps7><a name=\"n42\" data-tree=\"cm_1:nz_1\"></a>\n<span class=rvts44>(Відомості Верховної Ради (ВВР), 2023, № 52, ст.150)</span></p>\n</em><p class=rvps2><a name=\"n4\" data-tree=\"rz_1\"></a>\nВерховна Рада України <span class=rvts52>постановляє:</span></p>\n<p class=rvps2><a name=\"n5\" data-tree=\"rz1\"></a>\nI. Внести до <a class=rvts96 href=\"https://zakon.rada.gov.ua/laws/show/39/95-%D0%B2%D1%80\" target=_blank>Закону України</a> \"Про використання ядерної енергії та радіаційну безпеку\" (Відомості Верховної Ради України, 1995 р., № 12, ст. 81 із наступними змінами) такі зміни:</p>\n<p class=rvps2><a name=\"n6\" data-tree=\"pu1:rz1\"></a>\n1. У <a class=rvts96 href=\"https://zakon.rada.gov.ua/laws/show/39/95-%D0%B2%D1%80#n15\" target=_blank>частині першій</a> статті 1:</p>\n<p class=rvps2><a name=\"n7\" data-tree=\"ch_1:pu1:rz1\"></a>\nвизначення терміна \"радіоактивні матеріали\" викласти в такій редакції:</p>\n<p class=rvps2><a name=\"n8\" data-tree=\"ch_2:pu1:rz1\"></a>\n\"радіоактивний матеріал - матеріал, до складу якого входять радіоактивні речовини. До радіоактивних матеріалів належать: радіонуклідні джерела іонізуючого випромінювання, ядерні матеріали та радіоактивні відходи\";</p>\n</div></div>\n</div>"
+                                            }
+                                            openDocumentInSidebar(testLaw)
+                                        }}
+                                    >
+                                        <FileText size={14} />
+                                        <span className="ml-1">Тест</span>
                                     </button>
                                 </div>
                             ) : null}
@@ -644,7 +973,18 @@ export default function AIChat() {
                                 <div key={idx}>
                                     {m.type === 'human' ? (
                                         <div className="flex justify-end">
-                                            <div className="chat-bubble chat-bubble--user">{m.content}</div>
+                                            <div
+                                                className="chat-bubble chat-bubble--user"
+                                                style={{ userSelect: 'text' }}
+                                            >
+                                                {m.quote ? (
+                                                    <div className="quote-preview mb-2 text-xs px-3 py-2 rounded-md border opacity-80" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--muted)' }}>
+                                                        <div className="flex items-center gap-2 mb-1"><CornerDownRight size={14} /> <span>цитата:</span></div>
+                                                        <div className="whitespace-pre-wrap break-words">{m.quote}</div>
+                                                    </div>
+                                                ) : null}
+                                                {m.content}
+                                            </div>
                                         </div>
                                     ) : m.type === 'ai_error' ? (
                                         <div className="flex justify-start">
@@ -671,7 +1011,13 @@ export default function AIChat() {
                                                 {idx === messages.length - 1 && currentSources && currentSources.length > 0 ? (
                                                     <div className="source-chips mt-2">
                                                         {currentSources.map((s, i) => (
-                                                            <div key={i} className="source-chip"><FileText size={14} />{s}</div>
+                                                            <button
+                                                                key={i}
+                                                                className="source-chip hover:bg-surface hover:border-blue-300 cursor-pointer transition-colors"
+                                                                onClick={() => openDocumentInSidebar({ title: s, content: 'Завантаження документа...', name: s })}
+                                                            >
+                                                                <FileText size={14} />{s}
+                                                            </button>
                                                         ))}
                                                     </div>
                                                 ) : null}
@@ -679,11 +1025,27 @@ export default function AIChat() {
                                         </div>
                                     ) : (
                                         <div className="flex justify-start">
-                                            <div className="chat-bubble chat-bubble--ai">
-                                                <div className="md-answer">
-                                                    <MarkdownRenderer>
-                                                        {normalizeMarkdownText(m.content)}
-                                                    </MarkdownRenderer>
+                                            <div
+                                                className="chat-bubble chat-bubble--ai"
+                                                data-message-id={m.id ?? idx}
+                                                onContextMenu={(e) => handleContextMenu(e, idx, null)}
+                                                style={{ userSelect: 'text' }}
+                                            >
+                                                <div
+                                                    className="md-answer"
+                                                    onContextMenu={(e) => handleContextMenu(e, idx, null)}
+                                                >
+                                                    {m.quote ? (
+                                                        <div className="quote-preview mb-2 text-xs px-3 py-2 rounded-md border opacity-80" style={{ background: 'var(--surface)', borderColor: 'var(--border)', color: 'var(--muted)' }}>
+                                                            <div className="flex items-center gap-2 mb-1"><CornerDownRight size={14} /> <span>цитата:</span></div>
+                                                            <div className="whitespace-pre-wrap break-words">{m.quote}</div>
+                                                        </div>
+                                                    ) : null}
+                                                    <HighlightedText
+                                                        content={normalizeMarkdownText(m.content)}
+                                                        highlights={persistentHighlights}
+                                                        messageId={m.id ?? idx}
+                                                    />
                                                 </div>
 
                                                 {idx === messages.length - 1 && activeTools.length > 0 && currentStatus === 'using tool' ? (
@@ -696,13 +1058,25 @@ export default function AIChat() {
                                                 {idx === messages.length - 1 && currentSources && currentSources.length > 0 ? (
                                                     <div className="source-chips">
                                                         {currentSources.map((s, i) => (
-                                                            <div key={i} className="source-chip"><FileText size={14} />{s}</div>
+                                                            <button
+                                                                key={i}
+                                                                className="source-chip hover:bg-surface hover:border-blue-300 cursor-pointer transition-colors"
+                                                                onClick={() => openDocumentInSidebar({ title: s, content: 'Завантаження документа...', name: s })}
+                                                            >
+                                                                <FileText size={14} />{s}
+                                                            </button>
                                                         ))}
                                                     </div>
                                                 ) : (Array.isArray(m.sources) && m.sources.length > 0 ? (
                                                     <div className="source-chips">
                                                         {m.sources.map((s, i) => (
-                                                            <div key={i} className="source-chip"><FileText size={14} />{s}</div>
+                                                            <button
+                                                                key={i}
+                                                                className="source-chip hover:bg-surface hover:border-blue-300 cursor-pointer transition-colors"
+                                                                onClick={() => openDocumentInSidebar({ title: s, content: 'Завантаження документа...', name: s })}
+                                                            >
+                                                                <FileText size={14} />{s}
+                                                            </button>
                                                         ))}
                                                     </div>
                                                 ) : null)}
@@ -729,19 +1103,65 @@ export default function AIChat() {
                             </div>
                         )}
                     </div>
-                    <form id="chatForm" ref={formRef} onSubmit={handleSubmit} className="absolute bottom-0 left-0 right-0 flex items-end gap-3 px-4 py-3 sm:py-4 border-t" style={{ background: 'var(--surface-solid)', borderColor: 'var(--border)' }}>
-                        <textarea ref={inputRef} onInput={autoGrowTextarea} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }} id="chatInput" name="q" rows={1} placeholder="Опишіть питання… (Shift+Enter — новий рядок)" className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" style={{ overflowY: 'hidden' }}></textarea>
-                        {isStreaming ? (
-                            <button id="stopBtn" type="button" onClick={abortStream} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${!isAuthenticated ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} aria-label="Зупинити генерацію" disabled={!isAuthenticated} aria-disabled={!isAuthenticated ? 'true' : 'false'}>
-                                <Square size={18} />
-                            </button>
-                        ) : (
-                            <button id="sendBtn" disabled={!isAuthenticated} aria-disabled={!isAuthenticated ? 'true' : 'false'} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${!isAuthenticated ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit" aria-label="Надіслати">
-                                <Send size={18} />
-                            </button>
+                    <SelectionAskPopup
+                        containerRef={bodyRef}
+                        onAsk={(text) => {
+                            setQuoteText(text)
+                            setQuoteFromDocument(null)
+                            setQuoteSourceMessageId(null)
+                        }}
+                    />
+                    <form id="chatForm" ref={formRef} onSubmit={handleSubmit} className="absolute bottom-0 left-0 right-0 flex-col items-end gap-3 px-4 py-3 sm:py-4 border-t" style={{ background: 'var(--surface-solid)', borderColor: 'var(--border)' }}>
+                        {quoteText && (
+                            <div className="px-4">
+                                <div className="quote-input-container">
+                                    <div className="flex items-center gap-2 w-full">
+                                        <div className="quote-badge flex items-start gap-2 px-3 py-2 rounded-lg text-sm border mb-2" title={`"${quoteText}"`}>
+                                            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--muted)' }}>
+                                                <CornerDownRight size={16} />
+                                            </div>
+                                            <div className="flex-1 min-w-0 whitespace-pre-wrap break-words">"{quoteText}"</div>
+                                            <button type="button" onClick={clearQuote} className="p-1 rounded-full hover:bg-surface transition-colors" style={{ color: 'var(--muted)' }} aria-label="Скасувати цитування">
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         )}
+                        <div className="flex items-center gap-2">
+                            <textarea ref={inputRef} onInput={autoGrowTextarea} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(e) } }} id="chatInput" name="q" rows={1} placeholder="Опишіть питання… (Shift+Enter — новий рядок)" className="flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(30,58,138,0.2)]" style={{ overflowY: 'hidden' }}></textarea>
+                            {isStreaming ? (
+                                <button id="stopBtn" type="button" onClick={abortStream} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${!isAuthenticated ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} aria-label="Зупинити генерацію" disabled={!isAuthenticated} aria-disabled={!isAuthenticated ? 'true' : 'false'}>
+                                    <Square size={18} />
+                                </button>
+                            ) : (
+                                <button id="sendBtn" disabled={!isAuthenticated} aria-disabled={!isAuthenticated ? 'true' : 'false'} className={`shrink-0 inline-flex items-center justify-center rounded-full h-11 w-11 text-white hover:opacity-95 ${!isAuthenticated ? 'opacity-60 cursor-not-allowed' : ''}`} style={{ background: 'var(--accent)' }} type="submit" aria-label="Надіслати">
+                                    <Send size={18} />
+                                </button>
+                            )}
+                        </div>
                     </form>
                 </section>
+
+                {/* Desktop Document Sidebar */}
+                <aside
+                    className={`hidden md:block transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-96 lg:w-[28rem]' : 'w-0'
+                        } overflow-hidden border-l border-gray-200`}
+                    style={{ background: 'var(--surface-solid)' }}
+                >
+                    <DocumentSidebar
+                        isOpen={sidebarOpen}
+                        document={currentDocument}
+                        onClose={closeSidebar}
+                        isDesktop={true}
+                        onQuote={(text, documentId) => {
+                            setQuoteText(text)
+                            setQuoteFromDocument(documentId)
+                        }}
+                    />
+                </aside>
+
                 {(!loading && !isAuthenticated) && (
                     <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-sm" style={{ background: 'rgba(131, 131, 131, 0.1)', WebkitBackdropFilter: 'blur(6px)', backdropFilter: 'blur(6px)', boxShadow: '0px 0px 20px 20px rgba(131, 131, 131, 0.1)', width: '101%', height: '104%' }}>
                         <div className="max-w-md w-[92%] sm:w-auto rounded-2xl border p-6 text-center shadow-sm"
@@ -823,6 +1243,57 @@ export default function AIChat() {
                         </div>
                     </div>, document.body
                 )}
+
+                {/* Context Menu */}
+                {contextMenuOpen && createPortal(
+                    <div
+                        className="context-menu fixed z-50 rounded-lg shadow-lg border py-1 min-w-[160px] transition-all duration-200 ease-in-out"
+                        style={{
+                            left: contextMenuPosition.x,
+                            top: contextMenuPosition.y,
+                            background: 'var(--surface-solid)',
+                            borderColor: 'var(--border)',
+                            color: 'var(--ink)'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Убираем копирование по требованию — оставляем только цитирование */}
+                        <button
+                            type="button"
+                            className="w-full px-4 py-2 text-left text-sm hover:bg-surface transition-colors flex items-center gap-2"
+                            onClick={handleQuoteSelected}
+                            style={{ color: 'var(--ink)' }}
+                        >
+                            <MessageSquare size={14} />
+                            Цитувати
+                        </button>
+                    </div>,
+                    document.body
+                )}
+
+                {copyToastVisible && (
+                    <div className="absolute right-3 top-3 z-40">
+                        <div className="copy-toast rounded-lg shadow-sm px-3 py-2 text-sm flex items-center gap-2 transition-opacity duration-200" style={{ color: 'var(--ink)' }}>
+                            <CheckCircle2 size={16} style={{ color: '#16a34a' }} />
+                            <span>Текст скопійовано</span>
+                        </div>
+                        <div className="h-1 mt-1 rounded-full overflow-hidden" style={{ background: 'var(--surface)' }}>
+                            <div className="h-full" style={{ width: copyToastProgress + '%', background: 'var(--accent)', transition: 'width 50ms linear' }} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Mobile Document Sidebar */}
+                <DocumentSidebar
+                    isOpen={sidebarOpen}
+                    document={currentDocument}
+                    onClose={closeSidebar}
+                    isDesktop={false}
+                    onQuote={(text, documentId) => {
+                        setQuoteText(text)
+                        setQuoteFromDocument(documentId)
+                    }}
+                />
             </div>
         </div>
     )

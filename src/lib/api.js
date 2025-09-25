@@ -182,8 +182,19 @@ export const ChatAPI = {
         const query = `?thread_id=${encodeURIComponent(threadId)}`;
         return apiRequest(`/thread${query}`, { method: 'PATCH', body: { chat_name: chatName } });
     },
-    async sendMessage(threadId, message) {
-        return apiRequest('/chat/message', { method: 'POST', body: { thread_id: threadId, message } });
+    async sendMessage(threadId, messageData) {
+        // Поддерживаем как старый формат (строка), так и новый (объект с цитированием)
+        const body = typeof messageData === 'string'
+            ? { thread_id: threadId, message: messageData }
+            : {
+                thread_id: threadId,
+                message: messageData.message,
+                quote: messageData.quote || null,
+                quote_message_id: messageData.quote_message_id || null,
+                from_document: messageData.from_document || null
+            };
+        try { console.log('[API][sendMessage] body', body) } catch { /* ignore */ }
+        return apiRequest('/chat/message', { method: 'POST', body });
     },
     async abort(threadId) {
         const query = `?thread_id=${encodeURIComponent(threadId)}`

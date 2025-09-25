@@ -712,3 +712,349 @@ input[type="email"], input[type="password"], pre, code {
         transform: rotate(360deg);
     }
 }
+
+/* Document content with forced white background */
+.document-content {
+    background: #ffffff !important;
+    color: #111827 !important;
+}
+
+/* Dark mode should not override document content background */
+[data-theme="dark"] .document-content {
+    background: #ffffff !important;
+    color: #111827 !important;
+}
+
+/* Enhanced Citation System Styles */
+.citation-highlight {
+    background: linear-gradient(120deg, 
+        color-mix(in oklab, var(--accent) 25%, transparent),
+        color-mix(in oklab, var(--accent) 15%, transparent)
+    );
+    border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+    border-radius: 4px;
+    padding: 2px 4px;
+    margin: 0 2px;
+    position: relative;
+    animation: highlightPulse 0.8s ease-out;
+    transition: all 0.3s ease;
+}
+
+.citation-highlight::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--accent), transparent, var(--accent));
+    border-radius: 6px;
+    z-index: -1;
+    opacity: 0.3;
+    animation: borderGlow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes highlightPulse {
+    0% {
+        background: color-mix(in oklab, var(--accent) 40%, transparent);
+        transform: scale(1.02);
+    }
+    100% {
+        background: linear-gradient(120deg, 
+            color-mix(in oklab, var(--accent) 25%, transparent),
+            color-mix(in oklab, var(--accent) 15%, transparent)
+        );
+        transform: scale(1);
+    }
+}
+
+@keyframes borderGlow {
+    0% { opacity: 0.2; }
+    100% { opacity: 0.5; }
+}
+
+/* Persistent Selection Overlay */
+.selection-overlay {
+    position: absolute;
+    background: color-mix(in oklab, var(--accent) 20%, transparent);
+    border: 2px solid color-mix(in oklab, var(--accent) 40%, transparent);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 10;
+    animation: selectionGlow 0.5s ease-out;
+    box-shadow: 0 0 15px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+@keyframes selectionGlow {
+    0% {
+        opacity: 0;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Enhanced Context Menu */
+.context-menu {
+    backdrop-filter: blur(12px) saturate(150%);
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: none !important;
+    animation: contextMenuAppear 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+    transform-origin: top center;
+}
+
+[data-theme="dark"] .context-menu {
+    background: rgba(15, 22, 34, 0.95) !important;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+@keyframes contextMenuAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.context-menu button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.context-menu button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in oklab, var(--accent) 20%, transparent),
+        transparent
+    );
+    transition: left 0.3s ease;
+}
+
+.context-menu button:hover::before {
+    left: 100%;
+}
+
+/* Enhanced Quote Preview */
+.quote-preview {
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent) !important;
+    background: linear-gradient(135deg,
+        color-mix(in oklab, var(--accent) 15%, var(--surface)),
+        color-mix(in oklab, var(--accent) 8%, var(--surface))
+    ) !important;
+    animation: quoteSlideIn 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.quote-preview::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--accent), color-mix(in oklab, var(--accent) 70%, transparent));
+    border-radius: 0 2px 2px 0;
+}
+
+@keyframes quoteSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Quote Input Field Enhancement */
+.quote-input-container {
+    position: relative;
+    animation: quoteInputExpand 0.3s ease-out;
+}
+
+@keyframes quoteInputExpand {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+        max-height: 0;
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 200px;
+    }
+}
+
+.quote-badge {
+    background: linear-gradient(135deg,
+        color-mix(in oklab, var(--accent) 20%, var(--surface)),
+        color-mix(in oklab, var(--accent) 10%, var(--surface))
+    );
+    border: 1px solid color-mix(in oklab, var(--accent) 25%, transparent);
+    position: relative;
+    overflow: hidden;
+    animation: quoteBadgeAppear 0.3s ease-out;
+}
+
+.quote-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+}
+
+@keyframes quoteBadgeAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Citation Marker in Messages */
+.citation-marker {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin: 0 4px;
+    position: relative;
+    opacity: 0.8;
+}
+
+.citation-indicators {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    z-index: 5;
+}
+
+
+/* Improved Selection Visibility */
+.chat-bubble--ai .highlighted-text {
+    background: linear-gradient(120deg,
+        color-mix(in oklab, var(--accent) 30%, transparent),
+        color-mix(in oklab, var(--accent) 20%, transparent)
+    );
+    border-radius: 3px;
+    padding: 1px 3px;
+    margin: 0 1px;
+    transition: all 0.2s ease;
+    cursor: text;
+}
+
+.chat-bubble--ai .highlighted-text:hover {
+    background: linear-gradient(120deg,
+        color-mix(in oklab, var(--accent) 35%, transparent),
+        color-mix(in oklab, var(--accent) 25%, transparent)
+    );
+}
+
+/* Enhanced Toast Notification */
+.copy-toast {
+    backdrop-filter: blur(10px) saturate(150%);
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="dark"] .copy-toast {
+    background: rgba(15, 22, 34, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Responsive enhancements */
+@media (max-width: 768px) {
+    .context-menu {
+        min-width: 140px;
+        padding: 8px;
+    }
+    
+    .quote-preview {
+        margin: 8px 0;
+        padding: 12px !important;
+    }
+    
+    .citation-highlight {
+        padding: 1px 2px;
+        margin: 0 1px;
+    }
+    
+    .context-menu {
+        min-width: 140px;
+        padding: 8px;
+    }
+}
+
+/* Enhanced interaction feedback */
+.citation-highlight:hover {
+    background: linear-gradient(120deg, 
+        color-mix(in oklab, var(--accent) 35%, transparent),
+        color-mix(in oklab, var(--accent) 25%, transparent)
+    );
+    transform: scale(1.02);
+    cursor: pointer;
+}
+
+.quote-badge:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+.citation-marker:hover {
+    transform: scale(1.2);
+    opacity: 1;
+}
+
+/* Smooth state transitions */
+.context-menu,
+.quote-preview,
+.citation-highlight,
+.quote-badge {
+    will-change: transform, opacity;
+}
+
+/* Focus states for accessibility */
+.context-menu button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.quote-badge button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 50%;
+}
