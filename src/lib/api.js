@@ -190,8 +190,7 @@ export const ChatAPI = {
                 thread_id: threadId,
                 message: messageData.message,
                 quote: messageData.quote || null,
-                quote_message_id: messageData.quote_message_id || null,
-                from_document: messageData.from_document || null
+                quote_document_id: messageData.from_document || null
             };
         try { console.log('[API][sendMessage] body', body) } catch { /* ignore */ }
         return apiRequest('/chat/message', { method: 'POST', body });

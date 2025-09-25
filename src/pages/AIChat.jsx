@@ -136,7 +136,11 @@ export default function AIChat() {
                 if (!container || !node) return false
                 let el = node.nodeType === 3 ? node.parentNode : node
                 while (el) {
-                    if (el.classList && el.classList.contains('chat-bubble--ai')) return true
+                    if (el.classList) {
+                        // Блокируем цитирование для сообщений об ошибке
+                        if (el.classList.contains('chat-bubble--error')) return false
+                        if (el.classList.contains('chat-bubble--ai')) return true
+                    }
                     if (el === container) break
                     el = el.parentNode
                 }
@@ -510,6 +514,8 @@ export default function AIChat() {
         setActiveId(threadId)
         setMessages([])
         closeStream()
+        // Сбрасываем активную цитату при переключении треда
+        clearQuote()
         await fetchThreadMessages(threadId)
         openStream(threadId)
     }
@@ -586,6 +592,11 @@ export default function AIChat() {
         const sel = window.getSelection && window.getSelection()
         const text = String(sel && sel.toString ? sel.toString() : '').trim()
         if (!text) return
+        // Не позволяем цитирование из пузыря ошибки
+        const bubble = e.target && e.target.closest && e.target.closest('.chat-bubble')
+        if (bubble && bubble.classList && bubble.classList.contains('chat-bubble--error')) {
+            return
+        }
         setSelectedText(text)
         setSourceDocument(documentId || null)
         setSourceMessageId(messageIndex != null ? messageIndex : null)
@@ -652,6 +663,8 @@ export default function AIChat() {
         closeStream()
         setActiveId(null)
         setMessages([])
+        // Сбрасываем активную цитату при создании нового чата
+        clearQuote()
     }
 
     async function handleSubmit(e, options = {}) {

@@ -220,6 +220,12 @@ input::selection, textarea::selection{background:#bfdbfe;color:#111827}
 [data-theme="dark"] ::selection{background:rgba(96,165,250,.35);color:#f9fafb;text-shadow:none}
 [data-theme="dark"] ::-moz-selection{background:rgba(96,165,250,.35);color:#f9fafb;text-shadow:none}
 
+/* Stronger selection highlight specifically inside chat area for light theme */
+#chatBody ::selection, .chat-bubble ::selection, .md-answer ::selection {
+  background:#bfdbfe !important;
+  color:#111827 !important;
+}
+
 /* Text selection override - allow text selection everywhere except UI controls */
 * {
   -webkit-user-select: text !important;
