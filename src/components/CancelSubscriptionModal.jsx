@@ -60,7 +60,7 @@ export default function CancelSubscriptionModal({
             >
                 {!showFeedbackForm ? (
                     // Первый шаг - подтверждение отмены
-                    <div className="p-6">
+                    <div className="p-6" style={{ background: 'var(--surface-solid)' }}>
                         {/* Заголовок */}
                         <div className="text-center mb-6">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
@@ -118,7 +118,7 @@ export default function CancelSubscriptionModal({
                     </div>
                 ) : (
                     // Второй шаг - форма обратной связи
-                    <div className="p-6">
+                    <div className="p-6" style={{ background: 'var(--surface-solid)' }}>
                         {/* Заголовок */}
                         <div className="text-center mb-6">
                             <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
@@ -197,7 +197,7 @@ export default function CancelSubscriptionModal({
                                     className="w-full px-3 py-2 rounded-lg resize-none"
                                     style={{
                                         border: '1px solid var(--border)',
-                                        background: 'var(--surface)',
+                                        background: 'var(--surface-solid)',
                                         color: 'var(--ink)'
                                     }}
                                     rows={3}

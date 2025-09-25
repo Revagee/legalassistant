@@ -383,6 +383,10 @@ export default function SubscriptionPayment() {
                     <label className="block text-sm font-medium mb-2" style={{ color: 'var(--ink)' }}>
                         Номер карти *
                     </label>
+                    <div className="mb-2 flex items-center gap-2 opacity-80">
+                        <img src="/img/Visa-logo.svg" alt="Visa" className="h-5" />
+                        <img src="/img/Mastercard-logo.svg" alt="Mastercard" className="h-5" />
+                    </div>
                     <input
                         type="text"
                         value={formData.card}

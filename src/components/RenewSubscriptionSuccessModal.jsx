@@ -1,8 +1,8 @@
-export default function CancellationSuccessModal({
+export default function RenewSubscriptionSuccessModal({
     isOpen,
     onClose,
     subscriptionEndDate,
-    onNavigateToSubscription
+    onNavigateToAccount
 }) {
     if (!isOpen) return null
 
@@ -42,28 +42,28 @@ export default function CancellationSuccessModal({
                             </svg>
                         </div>
                         <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--ink)' }}>
-                            Підписку скасовано
+                            Підписку відновлено
                         </h2>
                         <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                            Дякуємо за ваш відгук! Ми працюємо над покращенням сервісу.
+                            Дякуємо! Автопродовження знову активне. Доступ до преміум‑функцій збережено.
                         </p>
                     </div>
 
-                    {/* Информация о доступе */}
+                    {/* Інформація */}
                     <div className="mb-6 p-4 rounded-lg"
                         style={{ background: 'color-mix(in oklab, var(--accent) 5%, transparent)' }}>
                         <h3 className="font-semibold mb-3" style={{ color: 'var(--ink)' }}>
-                            Що далі:
+                            Деталі підписки
                         </h3>
                         <div className="space-y-2 text-sm" style={{ color: 'var(--muted)' }}>
                             <div className="flex items-start gap-2">
                                 <span className="text-green-500 mt-0.5">✓</span>
-                                <span>Автоматичне списання зупинено</span>
+                                <span>Автоматичне списання буде виконано у дату продовження</span>
                             </div>
                             <div className="flex items-start gap-2">
-                                <span className="text-green-500 mt-0.5">✓</span>
+                                <span className="text-blue-500 mt-0.5">ℹ</span>
                                 <span>
-                                    Преміум доступ діятиме до{' '}
+                                    Поточна оплата покриває період до{' '}
                                     <strong style={{ color: 'var(--ink)' }}>
                                         {subscriptionEndDate ? formatDate(subscriptionEndDate) : 'кінця оплаченого періоду'}
                                     </strong>
@@ -71,52 +71,38 @@ export default function CancellationSuccessModal({
                             </div>
                             <div className="flex items-start gap-2">
                                 <span className="text-blue-500 mt-0.5">ℹ</span>
-                                <span>Після закінчення перейдете на безкоштовний план</span>
-                            </div>
-                            <div className="flex items-start gap-2">
-                                <span className="text-blue-500 mt-0.5">ℹ</span>
-                                <span>Ваші дані та історія чатів збережуться</span>
+                                <span>Скасувати автопродовження можна в розділі «Акаунт» у будь‑який час</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Предложение вернуться */}
-                    <div className="mb-6 p-4 rounded-lg border"
-                        style={{
-                            background: 'color-mix(in oklab, var(--muted) 3%, transparent)',
-                            borderColor: 'var(--border)'
-                        }}>
-                        <h3 className="font-semibold mb-2" style={{ color: 'var(--ink)' }}>
-                            Передумали?
-                        </h3>
-                        <p className="text-sm mb-3" style={{ color: 'var(--muted)' }}>
-                            Ви можете відновити підписку в будь-який час до закінчення поточного періоду.
-                        </p>
+                    {/* Кнопки */}
+                    <div className="flex gap-3">
                         <button
-                            onClick={onNavigateToSubscription}
-                            className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors"
+                            onClick={onClose}
+                            className="flex-1 px-4 py-3 rounded-lg font-medium transition-colors"
+                            style={{
+                                background: 'var(--border)',
+                                color: 'var(--ink)'
+                            }}
+                        >
+                            Закрити
+                        </button>
+                        <button
+                            onClick={onNavigateToAccount}
+                            className="flex-1 px-4 py-3 rounded-lg font-medium transition-colors"
                             style={{
                                 background: 'var(--accent)',
                                 color: '#ffffff'
                             }}
                         >
-                            Відновити підписку
+                            До акаунту
                         </button>
                     </div>
-
-                    {/* Кнопка закрытия */}
-                    <button
-                        onClick={onClose}
-                        className="w-full px-4 py-3 rounded-lg font-medium transition-colors"
-                        style={{
-                            background: 'var(--border)',
-                            color: 'var(--ink)'
-                        }}
-                    >
-                        Зрозуміло
-                    </button>
                 </div>
             </div>
         </div>
     )
 }
+
+

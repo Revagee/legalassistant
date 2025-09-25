@@ -175,7 +175,7 @@ export default function RenewSubscriptionModal({ isOpen, onClose, onRenew, isLoa
                     </svg>
                 </button>
 
-                <div className="mb-6">
+                <div className="mb-6" style={{ background: 'var(--surface-solid)' }}>
                     <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--ink)' }}>
                         Відновити підписку
                     </h2>
@@ -213,6 +213,10 @@ export default function RenewSubscriptionModal({ isOpen, onClose, onRenew, isLoa
                         <label className="block text-sm font-medium mb-2" style={{ color: 'var(--ink)' }}>
                             Номер карти *
                         </label>
+                        <div className="mb-2 flex items-center gap-2 opacity-80">
+                            <img src="/img/Visa-logo.svg" alt="Visa" className="h-5" />
+                            <img src="/img/Mastercard-logo.svg" alt="Mastercard" className="h-5" />
+                        </div>
                         <input
                             type="text"
                             value={formData.card}

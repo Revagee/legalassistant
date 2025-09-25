@@ -5,11 +5,12 @@ import { PaymentAPI } from '../lib/api.js'
 import SubscriptionTimeline from '../components/SubscriptionTimeline.jsx'
 import CancelSubscriptionModal from '../components/CancelSubscriptionModal.jsx'
 import CancellationSuccessModal from '../components/CancellationSuccessModal.jsx'
+import RenewSubscriptionSuccessModal from '../components/RenewSubscriptionSuccessModal.jsx'
 import ErrorModal from '../components/ErrorModal.jsx'
 import RenewSubscriptionModal from '../components/RenewSubscriptionModal.jsx'
 
 export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
-    const { user, loading, isAuthenticated, logout, updateUser } = useAuth()
+    const { user, loading, isAuthenticated, logout, updateUser, refresh } = useAuth()
     const navigate = useNavigate()
     const [active, setActive] = useState('home')
     const [avatar, setAvatar] = useState(avatarUrl)
@@ -21,6 +22,7 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
     const [showRenewModal, setShowRenewModal] = useState(false)
     const [renewingSubscription, setRenewingSubscription] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
+    const [showRenewSuccess, setShowRenewSuccess] = useState(false)
     const [_cancellationFeedback, setCancellationFeedback] = useState(null)
     useEffect(() => {
         try {
@@ -110,9 +112,12 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
             console.log('Cancellation feedback:', feedbackData)
 
             await PaymentAPI.cancelSubscription()
+            try { await refresh() } catch { /* ignore */ }
             setSubscriptionCancelled(true)
             setShowCancelModal(false)
             setShowSuccessModal(true)
+            // Автоматично оновлюємо вкладку "Підписка"
+            switchTab('subscription')
         } catch (error) {
             console.error('Помилка при скасуванні підписки:', error)
             setErrorMessage('Виникла помилка при скасуванні підписки. Спробуйте пізніше або зверніться до підтримки.')
@@ -155,7 +160,10 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
             }
 
             setShowRenewModal(false)
-            // Можно показать уведомление об успехе
+            // Автоматично оновлюємо вкладку "Підписка"
+            switchTab('subscription')
+            try { await refresh() } catch { /* ignore */ }
+            setShowRenewSuccess(true)
         } catch (error) {
             console.error('Помилка при відновленні підписки:', error)
             setErrorMessage('Виникла помилка при відновленні підписки. Перевірте дані карти та спробуйте ще раз.')
@@ -340,7 +348,7 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
                                         </ul>
                                     </div>
 
-                                    {isSubscriptionActive && (
+                                    {isSubscriptionActive && !isSubscriptionCancelled && (
                                         <button
                                             onClick={handleCancelSubscriptionClick}
                                             disabled={cancellingSubscription}
@@ -422,7 +430,8 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
                 subscriptionEndDate={user?.subscription_end_date}
                 onNavigateToSubscription={() => {
                     setShowSuccessModal(false)
-                    navigate('/subscription')
+                    switchTab('subscription')
+                    try { refresh() } catch { /* ignore */ }
                 }}
             />
 
@@ -431,6 +440,16 @@ export default function Account({ avatarUrl = '/static/img/Ellipse 3.png' }) {
                 onClose={() => setShowRenewModal(false)}
                 onRenew={handleRenewSubscription}
                 isLoading={renewingSubscription}
+            />
+
+            <RenewSubscriptionSuccessModal
+                isOpen={showRenewSuccess}
+                onClose={() => setShowRenewSuccess(false)}
+                subscriptionEndDate={user?.subscription_end_date}
+                onNavigateToAccount={() => {
+                    setShowRenewSuccess(false)
+                    switchTab('subscription')
+                }}
             />
         </div>
     )
